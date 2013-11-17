@@ -9,14 +9,13 @@
 namespace Realejo\Db;
 
 use PHPUnit_Framework_TestCase;
-use PHPUnit_Extensions_Database_TestCase;
 
 require_once 'Realejo/Db/TableAdapter.php';
 
 /**
  * TableAdapter test case.
  */
-class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
+class TableAdapterTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var string
@@ -33,11 +32,7 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
      */
     private $TableAdapter;
 
-    /**
-     * instancie o pdo apenas uma vez por limpeza de teste/carregamento de ambiente
-     * @var
-     */
-    static private $pdo = null;
+    private $pdo = null;
 
     /**
      * instancie PHPUnit_Extensions_Database_DB_IDatabaseConnection apenas uma vez por teste
@@ -45,33 +40,27 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
      */
     private $conn = null;
 
-    /**
-     * @return PHPUnit_Extensions_Database_DB_IDatabaseConnection
-     */
-    final public function getConnection()
+    public function getConnection()
     {
-        if ($this->conn === null) {
-            if (self::$pdo == null) {
-                self::$pdo = new \PDO('sqlite::memory:');
-            }
-            $this->conn = $this->createDefaultDBConnection(self::$pdo, ':memory:');
+        if ($this->pdo === null) {
+            $this->pdo = new \Zend\Db\Adapter\Adapter(array(
+                'driver'   => 'Pdo_Sqlite',
+             ));
         }
-
-        return $this->conn;
+        return $this->pdo;
     }
 
-    public function testCreateDataSet()
+    public function createDatabase()
     {
-        $tableNames = array('album');
-        $dataSet = $this->getConnection()->createDataSet();
-    }
-
-    /**
-     * @return PHPUnit_Extensions_Database_DataSet_IDataSet
-     */
-    public function getDataSet()
-    {
-        return $this->createXmlDataSet('assets/exemplo.xml');
+        $conn = $this->getConnection();
+        $conn->exec("
+                CREATE TABLE album (
+                id smallint(10) NOT NULL auto_increment,
+                artist varchar(100) NOT NULL,
+                title varchar(100) NOT NULL,
+                deleted tinyint(1) UNSIGNED NOT NULL DEFALT 0,
+                PRIMARY KEY (id)
+        );");
     }
 
     /**
@@ -79,8 +68,8 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
      */
     protected function setUp()
     {
+        // TODO Auto-generated TableAdapterTest::setUp()
         parent::setUp();
-
     }
 
     /**
@@ -95,22 +84,24 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
 
     public function getTableAdapter()
     {
-        return new TableAdapter($this->tableName, $this->tableKeyName, $this->getConnection());
+        if ($this->TableAdapter === null) {
+            $this->TableAdapter = new TableAdapter($this->tableName, $this->tableKeyName, $this->getConnection());
+        }
+        return $this->TableAdapter;
     }
-
 
     /**
      * Construct sem nome da tabela
-     * @expectedException
+     * @expectedException Exception
      */
-    public function testConstructSemTable()
+    public function testConstructSemTableName()
     {
-        new TableAdapter(null, $this->tableId);
+        new TableAdapter(null, $this->tableKeyName);
     }
 
     /**
      * Construct sem nome da chave
-     * @expectedException
+     * @expectedException Exception
      */
     public function testConstructSemKeyName()
     {
@@ -119,7 +110,7 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
 
     /**
      * Constructs the test case sem adapter. Por que não tem "applicaion.ini"
-     * @expectedException
+     * @expectedException Exception
      */
     public function testConstructSemAdapter()
     {
@@ -127,28 +118,46 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
     }
 
     /**
-     * Tests TableAdapter->getOrder()
+     * Constructs the test case copm adapter inválido. Ele deve ser Zend\Db\Adapter\Adapter\AdapterInterface
+     * @expectedException Exception
      */
-    public function testGetOrder()
+    public function testCosntructComAdapterInvalido()
     {
-        // TODO Auto-generated TableAdapterTest->testGetOrder()
-        $this->markTestIncomplete("getOrder test not implemented");
-
-        $this->TableAdapter()->getOrder(/* parameters */);
-
+        $tableAdapter = new TableAdapter($this->tableName, $this->tableKeyName, new \PDO('sqlite::memory:'));
     }
 
     /**
-     * Tests TableAdapter->setOrder()
+     * test a criação com a conexão local de testes
      */
-    public function testSetOrder()
+    public function testCreateTableAdapter()
     {
-        // TODO Auto-generated TableAdapterTest->testSetOrder()
-        $this->markTestIncomplete("setOrder test not implemented");
-
-        $this->TableAdapter()->setOrder(/* parameters */);
-
+        $tableAdapter = new TableAdapter($this->tableName, $this->tableKeyName, $this->getConnection());
+        $this->assertInstanceOf('Realejo\Db\TableAdapter', $tableAdapter);
     }
+
+
+    /**
+     * Tests TableAdapter->getOrder()
+     */
+    public function testOrder()
+    {
+        // Verifica a ordem padrão
+        $this->assertNull($this->getTableAdapter()->getOrder());
+
+        // Define uma nova ordem com string
+        $this->getTableAdapter()->setOrder('id');
+        $this->assertEquals('id', $this->getTableAdapter()->getOrder());
+
+        // Define uma nova ordem com string
+        $this->getTableAdapter()->setOrder('title');
+        $this->assertEquals('title', $this->getTableAdapter()->getOrder());
+
+
+        // Define uma nova ordem com array
+        $this->getTableAdapter()->setOrder(array('id', 'title'));
+        $this->assertEquals(array('id', 'title'), $this->getTableAdapter()->getOrder());
+    }
+
 
     /**
      * Tests TableAdapter->getWhere()
@@ -158,7 +167,7 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
         // TODO Auto-generated TableAdapterTest->testGetWhere()
         $this->markTestIncomplete("getWhere test not implemented");
 
-        $this->TableAdapter()->getWhere(/* parameters */);
+        $this->getTableAdapter()->getWhere(/* parameters */);
 
     }
 
@@ -170,7 +179,7 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
         // TODO Auto-generated TableAdapterTest->testGetSelect()
         $this->markTestIncomplete("getSelect test not implemented");
 
-        $this->TableAdapter()->getSelect(/* parameters */);
+        $this->getTableAdapter()->getSelect(/* parameters */);
 
     }
 
@@ -182,7 +191,7 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
         // TODO Auto-generated TableAdapterTest->testGetSQlString()
         $this->markTestIncomplete("getSQlString test not implemented");
 
-        $this->TableAdapter()->getSQlString(/* parameters */);
+        $this->getTableAdapter()->getSQlString(/* parameters */);
 
     }
 
@@ -194,7 +203,7 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
         // TODO Auto-generated TableAdapterTest->testFetchAll()
         $this->markTestIncomplete("fetchAll test not implemented");
 
-        $this->TableAdapter()->fetchAll(/* parameters */);
+        $this->getTableAdapter()->fetchAll(/* parameters */);
 
     }
 
@@ -206,7 +215,7 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
         // TODO Auto-generated TableAdapterTest->testFetchRow()
         $this->markTestIncomplete("fetchRow test not implemented");
 
-        $this->TableAdapter()->fetchRow(/* parameters */);
+        $this->getTableAdapter()->fetchRow(/* parameters */);
 
     }
 
@@ -218,7 +227,7 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
         // TODO Auto-generated TableAdapterTest->testFetchAssoc()
         $this->markTestIncomplete("fetchAssoc test not implemented");
 
-        $this->TableAdapter()->fetchAssoc(/* parameters */);
+        $this->getTableAdapter()->fetchAssoc(/* parameters */);
 
     }
 
@@ -230,7 +239,7 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
         // TODO Auto-generated TableAdapterTest->testSave()
         $this->markTestIncomplete("save test not implemented");
 
-        $this->TableAdapter()->save(/* parameters */);
+        $this->getTableAdapter()->save(/* parameters */);
 
     }
 
@@ -242,7 +251,7 @@ class TableAdapterTest extends PHPUnit_Extensions_Database_TestCase
         // TODO Auto-generated TableAdapterTest->testDelete()
         $this->markTestIncomplete("delete test not implemented");
 
-        $this->TableAdapter()->delete(/* parameters */);
+        $this->getTableAdapter()->delete(/* parameters */);
 
     }
 

@@ -43,11 +43,11 @@ class TableAdapter
     public function __construct($table, $key, $dbAdapter = null)
     {
         if (empty($table) || !is_string($table)) {
-            throw \Exception('Nome da tabela inválido');
+            throw new \Exception('Nome da tabela inválido');
         }
 
         if (empty($key) || !is_string($key)) {
-            throw \Exception('Nome da chave inválido');
+            throw new \Exception('Nome da chave inválido');
         }
 
         // Define o adapter padrão
