@@ -9,6 +9,7 @@
 namespace Realejo\Db;
 
 use \Zend\Db\TableGateway\Feature\GlobalAdapterFeature;
+use \Zend\Db\Adapter\AdapterInterface;
 use \Zend\Db\TableGateway\TableGateway;
 use \Zend\Db\Sql\Sql;
 
@@ -22,7 +23,7 @@ class TableAdapter
     /**
      * @var string
      */
-    protected $id = null;
+    protected $key = null;
 
     /**
      * @var string
@@ -39,16 +40,30 @@ class TableAdapter
      */
     protected $order = null;
 
-    public function __construct($table, $id, $dbAdapter = null)
+    public function __construct($table, $key, $dbAdapter = null)
     {
+        if (empty($table) || !is_string($table)) {
+            throw \Exception('Nome da tabela inválido');
+        }
+
+        if (empty($key) || !is_string($key)) {
+            throw \Exception('Nome da chave inválido');
+        }
+
         // Define o adapter padrão
         if (empty($dbAdapter)) {
             $dbAdapter = GlobalAdapterFeature::getStaticAdapter();
         }
+
+        // Verifica se tem adapter válido
+        if ( !($dbAdapter instanceof AdapterInterface)) {
+            throw new \Exception("Adapter dever ser uma instancia de AdapterInterface");
+
+        }
         $this->tableGateway = new TableGateway($table, $dbAdapter);
 
         // Define a chave e o nome da tabela
-        $this->id    = $id;
+        $this->key   = $key;
         $this->table = $table;
     }
 
@@ -200,7 +215,7 @@ class TableAdapter
     public function fetchRow($where, $order = null)
     {
         // Define o código do usuário
-        if (is_numeric($where)) $where = array($this->id=>$where);
+        if (is_numeric($where)) $where = array($this->key=>$where);
 
         // Recupera o usuário
         $row = $this->fetchAll($where, $order, 1, null);
@@ -225,7 +240,7 @@ class TableAdapter
         $usuario = $this->getUsuario($where, $order, $count, $offset, $cache);
         $return = array();
         foreach ($usuario as $u) {
-            $return[$u[$this->id]] = $u;
+            $return[$u[$this->key]] = $u;
         }
 
         return $return;
@@ -234,17 +249,17 @@ class TableAdapter
     public function save($dados)
     {
 
-        if (!isset($dados[$this->id])) {
+        if (!isset($dados[$this->key])) {
 
             return $this->tableGateway->insert($dados);
         } else {
             // Caso não seja, envia um Exception
-            if (!is_numeric($dados[$this->id])) {
-                throw new \Exception("Inválido o Código '{$dados[$this->id]}' em '{$this->table}'::save()");
+            if (!is_numeric($dados[$this->key])) {
+                throw new \Exception("Inválido o Código '{$dados[$this->key]}' em '{$this->table}'::save()");
             }
 
-            if ($this->fetchRow($dados[$this->id])) {
-                $this->tableGateway->update($dados, array($this->id => $dados[$this->id]));
+            if ($this->fetchRow($dados[$this->key])) {
+                $this->tableGateway->update($dados, array($this->key => $dados[$this->key]));
 
                 return true;
             } else {
@@ -260,7 +275,7 @@ class TableAdapter
             throw new \Exception("Inválido o Código $id em '{$this->table}'::delete()");
         }
 
-        $this->tableGateway->update(array('deleted'=>1), array($this->id => $id));
+        $this->tableGateway->update(array('deleted'=>1), array($this->key => $id));
     }
 
 }
