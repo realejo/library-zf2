@@ -1,0 +1,15 @@
+{
+    "name": "realejo/zf2mvclib",
+    "description": "MVC LIb para projetos da Realejo",
+    "license": "BSD-3-Clause",
+    "keywords": [
+        "framework",
+        "zf2",
+        "realejo"
+    ],
+    "homepage": "http://realejo.com.br",
+    "require": {
+        "php": ">=5.3.3",
+        "zendframework/zendframework": "2.2.*"
+    }
+}
