@@ -290,11 +290,19 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testFetchAll()
     {
-        // TODO Auto-generated TableAdapterTest->testFetchAll()
-        $this->markTestIncomplete("fetchAll test not implemented");
+        $albuns = $this->defaultValues;
+        unset($albuns[3]); // remov o deleted=1
+        $this->assertEquals($albuns, $this->getTableAdapter()->fetchAll());
 
-        $this->getTableAdapter()->fetchAll(/* parameters */);
+        $this->getTableAdapter()->setShowDeleted(true);
+        $this->assertEquals($this->defaultValues, $this->getTableAdapter()->fetchAll());
+        $this->assertEquals(4, count($this->getTableAdapter()->fetchAll()));
+        $this->getTableAdapter()->setShowDeleted(false);
+        $this->assertEquals(3, count($this->getTableAdapter()->fetchAll()));
 
+        // Verifica o where
+        $this->assertEquals(2, count($this->getTableAdapter()->fetchAll(array('artist'=>$albuns[0]['artist']))));
+        $this->assertNull($this->getTableAdapter()->fetchAll(array('artist'=>$this->defaultValues[3]['artist'])));
     }
 
     /**
@@ -302,9 +310,6 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testFetchRow()
     {
-        // Cria a tabela com os dados padrão
-        $this->truncateTable()->insertDefaultRows();;
-
         // Verifica os itens que existem
         $this->assertEquals($this->defaultValues[0], $this->getTableAdapter()->fetchRow(1));
         $this->assertEquals($this->defaultValues[1], $this->getTableAdapter()->fetchRow(2));
@@ -312,7 +317,10 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
 
         // Verifica o item removido
         $this->assertNull($this->getTableAdapter()->fetchRow(4));
-        $this->assertEquals($this->defaultValues[3], $this->getTableAdapter()->setshowDeleted(true)->fetchRow(4));
+        $this->getTableAdapter()->setShowDeleted(true);
+        $this->assertEquals($this->defaultValues[3], $this->getTableAdapter()->fetchRow(4));
+        $this->getTableAdapter()->setShowDeleted(false);
+        $this->assertNull($this->getTableAdapter()->fetchRow(4));
     }
 
     /**
@@ -357,12 +365,32 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testDelete()
     {
-        // TODO Auto-generated TableAdapterTest->testDelete()
-        $this->markTestIncomplete("delete test not implemented");
+        $row = $this->defaultValues[0];
 
-        $this->getTableAdapter()->delete(/* parameters */);
+        // Verifica se o registro existe
+        $this->assertEquals($row, $this->getTableAdapter()->fetchRow(1));
 
+        // Remove o registro
+        $this->getTableAdapter()->delete(1);
+        $row['deleted'] = 1;
+
+        // Verifica se foi removido
+        $this->assertNull($this->getTableAdapter()->fetchRow(1));
+
+        // Marca para mostrar os removidos
+        $this->getTableAdapter()->setShowDeleted(true);
+
+        // Verifica se o registro existe
+        $this->assertEquals($row, $this->getTableAdapter()->fetchRow(1));
+
+        // Marca para remover o registro da tabela
+        $this->getTableAdapter()->setUseDeleted(false);
+
+        // Remove o registro
+        $this->getTableAdapter()->delete(1);
+
+        // Verifica se ele foi removido
+        $this->assertNull($this->getTableAdapter()->fetchRow(1));
     }
-
 }
 
