@@ -31,12 +31,19 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
     /**
      * @var TableAdapter
      */
-    private $TableAdapter;
+    protected $TableAdapter;
 
     /**
      * @var Zend\Db\Adapter\Adapter
      */
-    private $pdoAdapter = null;
+    protected $pdoAdapter = null;
+
+    protected $defaultValues = array(
+        array('id' => 1, 'artist' => 'Rush', 'title' => 'Rush', 'deleted' => 0),
+        array('id' => 2, 'artist' => 'Rush', 'title' => 'Moving Pictures', 'deleted' => 0),
+        array('id' => 3, 'artist' => 'Dream Theater', 'title' => 'Images And Words', 'deleted' => 0),
+        array('id' => 4, 'artist' => 'Claudia Leitte', 'title' => 'Exttravasa', 'deleted' => 1)
+    );
 
     /**
      * @return \Zend\Db\Adapter\Adapter
@@ -74,11 +81,12 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function insertDefaultRows()
     {
-        $conn = $this->getPdoAdapter();
-        $conn->query("INSERT into {$this->tableName}({$this->tableKeyName}, artist, title, deleted) VALUES (1, 'Rush', 'Rush', 0);", Adapter::QUERY_MODE_EXECUTE);
-        $conn->query("INSERT INTO {$this->tableName}({$this->tableKeyName}, artist, title, deleted) VALUES (2, 'Rush', 'Moving Pictures', 0);", Adapter::QUERY_MODE_EXECUTE);
-        $conn->query("INSERT INTO {$this->tableName}({$this->tableKeyName}, artist, title, deleted) VALUES (3, 'Dream Theater', 'Images And Words', 0);", Adapter::QUERY_MODE_EXECUTE);
-        $conn->query("INSERT INTO {$this->tableName}({$this->tableKeyName}, artist, title, deleted) VALUES (4, 'Claudia Leitte', 'Exttravasa', 1);", Adapter::QUERY_MODE_EXECUTE);
+        $pdoAdapter = $this->getPdoAdapter();
+        foreach($this->defaultValues as $row) {
+            $pdoAdapter->query("INSERT into {$this->tableName}({$this->tableKeyName}, artist, title, deleted)
+                                VALUES ({$row[$this->tableKeyName]}, '{$row['artist']}', '{$row['title']}', {$row['deleted']});",
+                               Adapter::QUERY_MODE_EXECUTE);
+        }
         return $this;
     }
 
@@ -179,7 +187,6 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testPdoAdatper()
     {
-        $this->assertNull($this->pdoAdapter);
         $this->assertInstanceOf('\Zend\Db\Adapter\Adapter', $this->getPdoAdapter());
         $this->assertInstanceOf('\Zend\Db\Adapter\Adapter', $this->pdoAdapter);
     }
@@ -248,6 +255,25 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Tests campo deleted
+     */
+    public function testDeletedField()
+    {
+        // Verifica se deve remover o registro
+        $this->assertTrue($this->getTableAdapter()->getUseDeleted());
+        $this->assertTrue($this->getTableAdapter()->setUseDeleted(true)->getUseDeleted());
+        $this->assertFalse($this->getTableAdapter()->setUseDeleted(false)->getUseDeleted());
+        $this->assertFalse($this->getTableAdapter()->getUseDeleted());
+
+
+        // Verifica se deve mostrar o registro
+        $this->assertFalse($this->getTableAdapter()->getShowDeleted());
+        $this->assertFalse($this->getTableAdapter()->setShowDeleted(false)->getShowDeleted());
+        $this->assertTrue($this->getTableAdapter()->setShowDeleted(true)->getShowDeleted());
+        $this->assertTrue($this->getTableAdapter()->getShowDeleted());
+    }
+
+    /**
      * Tests TableAdapter->getSQlString()
      */
     public function testGetSQlString()
@@ -276,12 +302,17 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testFetchRow()
     {
-        $this->truncateTable()->insertDefaultRows();
-        $album = $this->getTableAdapter()->fetchRow(1);
-        var_dump($album);
+        // Cria a tabela com os dados padrão
+        $this->truncateTable()->insertDefaultRows();;
 
-        die();
+        // Verifica os itens que existem
+        $this->assertEquals($this->defaultValues[0], $this->getTableAdapter()->fetchRow(1));
+        $this->assertEquals($this->defaultValues[1], $this->getTableAdapter()->fetchRow(2));
+        $this->assertEquals($this->defaultValues[2], $this->getTableAdapter()->fetchRow(3));
 
+        // Verifica o item removido
+        $this->assertNull($this->getTableAdapter()->fetchRow(4));
+        $this->assertEquals($this->defaultValues[3], $this->getTableAdapter()->setshowDeleted(true)->fetchRow(4));
     }
 
     /**
@@ -289,11 +320,24 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testFetchAssoc()
     {
-        // TODO Auto-generated TableAdapterTest->testFetchAssoc()
-        $this->markTestIncomplete("fetchAssoc test not implemented");
+        $albuns = $this->getTableAdapter()->fetchAssoc();
+        $this->assertEquals(3, count($albuns));
+        $this->assertEquals($this->defaultValues[0], $albuns[1]);
+        $this->assertEquals($this->defaultValues[1], $albuns[2]);
+        $this->assertEquals($this->defaultValues[2], $albuns[3]);
 
-        $this->getTableAdapter()->fetchAssoc(/* parameters */);
+        $albuns = $this->getTableAdapter()->setShowDeleted(true)->fetchAssoc();
+        $this->assertEquals(4, count($albuns));
+        $this->assertEquals($this->defaultValues[0], $albuns[1]);
+        $this->assertEquals($this->defaultValues[1], $albuns[2]);
+        $this->assertEquals($this->defaultValues[2], $albuns[3]);
+        $this->assertEquals($this->defaultValues[3], $albuns[4]);
 
+        $albuns = $this->getTableAdapter()->setShowDeleted(false)->fetchAssoc();
+        $this->assertEquals(3, count($albuns));
+        $this->assertEquals($this->defaultValues[0], $albuns[1]);
+        $this->assertEquals($this->defaultValues[1], $albuns[2]);
+        $this->assertEquals($this->defaultValues[2], $albuns[3]);
     }
 
     /**

@@ -40,6 +40,21 @@ class TableAdapter
      */
     protected $order = null;
 
+    /**
+     * Define se deve remover os registros ou apenas marcar como removido
+     *
+     * @var boolean
+     */
+    protected $useDeleted = true;
+
+    /**
+     * Define se deve mostrar os registros marcados como removido
+     *
+     * @var boolean
+     */
+    protected $showDeleted = false;
+
+
     public function __construct($table, $key, $dbAdapter = null)
     {
         if (empty($table) || !is_string($table)) {
@@ -105,12 +120,13 @@ class TableAdapter
 
         // Checks $where is not null
         if (empty($where)) {
-            $this->where[] = "{$this->tableGateway->getTable()}.deleted=0";
-
+            if (!$this->showDeleted) {
+                $this->where[] = "{$this->tableGateway->getTable()}.deleted=0";
+            }
         } else {
 
             // Checks $where is deleted
-            if (!isset($where['deleted'])) {
+            if (!isset($where['deleted']) && !$this->showDeleted) {
                 $where['deleted'] = 0;
             }
 
@@ -129,22 +145,34 @@ class TableAdapter
                 } elseif ($id === 'deleted' && $w === true) {
                     $this->where[] = "{$this->tableGateway->getTable()}.deleted=1";
 
-                // Checks ativos
-                } elseif ($w === 'ativo' || ($id === 'ativo' && $w === true)) {
-                    $this->where[] = "{$this->tableGateway->getTable()}.ativo=1";
-
-                } elseif ($id === 'ativo' && $w === false) {
-                    $this->where[] = "{$this->tableGateway->getTable()}.ativo=0";
-
                 // Checks $id is not numeric and $w is numeric
                 } elseif (!is_numeric($id) && is_numeric($w)) {
                     if (strpos($id, '.') === false) $id = $this->tableGateway->getTable() . ".$id";
                     $this->where[] = "$id=$w";
 
+                    /**
+                     * Funciona direto com array, mas tem que verificar o impacto no join
+                    if (strpos($id, '.') === false) {
+                        $this->where[$id] = $w;
+                    } else {
+                        $this->where[] = "$id=$w";
+                    }
+                    */
+
                 // Checks $id is not numeric and $w is string
                 } elseif (!is_numeric($id) && is_string($id)) {
                     if (strpos($id, '.') === false) $id = $this->tableGateway->getTable() . ".$id";
                     $this->where[] = "$id='$w'";
+
+                    /**
+                     * Funciona direto com array, mas tem que verificar o impacto no join
+                    if (strpos($id, '.') === false) {
+                        $this->where[$id] = $w;
+                    } else {
+                       $this->where[] = "$id='$w'";
+                    }
+                    */
+
 
                 // Return $id is not numeric and $w is string
                 } else {
@@ -164,8 +192,8 @@ class TableAdapter
         $select = $this->tableGateway->getSql()->select();
 
         // Define a ordem
-        if (is_null($order)) $order = $this->getOrder();
-        $select->order($order);
+        if (empty($order))  $order = $this->getOrder();
+        if (!empty($order)) $select->order($order);
 
         // Verifica se há paginação
         if (!is_null($count)) $select->limit($count);
@@ -220,7 +248,7 @@ class TableAdapter
         if (is_numeric($where)) $where = array($this->key=>$where);
 
         // Recupera o usuário
-        $row = $this->fetchAll($where, $order, 1, null);
+        $row = $this->fetchAll($where, $order, 1);
 
         // Retorna o usuário
         return (!is_null($row) && count($row)>0)? $row[0] : null;
@@ -234,15 +262,15 @@ class TableAdapter
      * @param array|int $order  Ordem dos usuários
      * @param int       $count
      * @param int       $offset
-     * @param boolean   $cache
+     *
      * @return array
      */
-    public function fetchAssoc($where = null, $order = null, $count = null, $offset = null, $cache = true)
+    public function fetchAssoc($where = null, $order = null, $count = null, $offset = null)
     {
-        $usuario = $this->getUsuario($where, $order, $count, $offset, $cache);
+        $rowset = $this->fetchAll($where, $order, $count, $offset);
         $return = array();
-        foreach ($usuario as $u) {
-            $return[$u[$this->key]] = $u;
+        foreach ($rowset as $row) {
+            $return[$row[$this->key]] = $row;
         }
 
         return $return;
@@ -277,7 +305,59 @@ class TableAdapter
             throw new \Exception("Inválido o Código $id em '{$this->table}'::delete()");
         }
 
-        $this->tableGateway->update(array('deleted'=>1), array($this->key => $id));
+        if ($this->useDeleted === true) {
+            $this->tableGateway->update(array('deleted'=>1), array($this->key => $id));
+        } else {
+            $this->tableGateway->delete(array($this->key => $id));
+        }
+    }
+
+	/**
+	 * Retorna se irá usar o campo deleted ou remover o registro quando usar delete()
+     * @return boolean
+     */
+    public function getUseDeleted()
+    {
+        return $this->useDeleted;
+    }
+
+	/**
+	 * Define se irá usar o campo deleted ou remover o registro quando usar delete()
+	 *
+     * @param boolean $useDeleted
+     *
+     * @return TableAdapter
+     */
+    public function setUseDeleted($useDeleted)
+    {
+        $this->useDeleted = $useDeleted;
+
+        // Mantem a cadeia
+        return $this;
+    }
+
+    /**
+     * Retorna se deve retornar os registros marcados como removidos
+     * @return boolean
+     */
+    public function getShowDeleted()
+    {
+        return $this->showDeleted;
+    }
+
+    /**
+     * Define se deve retornar os registros marcados como removidos
+     *
+     * @param boolean $showDeleted
+     *
+     * @return TableAdapter
+     */
+    public function setShowDeleted($showDeleted)
+    {
+        $this->showDeleted = $showDeleted;
+
+        // Mantem a cadeia
+        return $this;
     }
 
 }
