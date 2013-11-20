@@ -104,7 +104,7 @@ class TableAdapter
         $this->where = array();
 
         // Checks $where is not null
-        if (is_null($where)) {
+        if (empty($where)) {
             $this->where[] = "{$this->tableGateway->getTable()}.deleted=0";
 
         } else {
@@ -119,14 +119,14 @@ class TableAdapter
             foreach ($where as $id=>$w) {
 
                 // Checks $where is not string
-                if (is_string($w)) {
+                if ($w instanceof \Zend\Db\Sql\Expression) {
                     $this->where[] = $w;
 
                 // Checks is deleted
                 } elseif ($id === 'deleted' && $w === false) {
                     $this->where[] = "{$this->tableGateway->getTable()}.deleted=0";
 
-                } elseif ($w === 'deleted' || ($id === 'deleted' && $w === true)) {
+                } elseif ($id === 'deleted' && $w === true) {
                     $this->where[] = "{$this->tableGateway->getTable()}.deleted=1";
 
                 // Checks ativos
@@ -138,11 +138,13 @@ class TableAdapter
 
                 // Checks $id is not numeric and $w is numeric
                 } elseif (!is_numeric($id) && is_numeric($w)) {
-                    $this->where[] = "{$this->tableGateway->getTable()}.$id=$w";
+                    if (strpos($id, '.') === false) $id = $this->tableGateway->getTable() . ".$id";
+                    $this->where[] = "$id=$w";
 
                 // Checks $id is not numeric and $w is string
                 } elseif (!is_numeric($id) && is_string($id)) {
-                    $this->where[] = "{$this->tableGateway->getTable()}.$id='$w'";
+                    if (strpos($id, '.') === false) $id = $this->tableGateway->getTable() . ".$id";
+                    $this->where[] = "$id='$w'";
 
                 // Return $id is not numeric and $w is string
                 } else {

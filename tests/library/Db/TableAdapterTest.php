@@ -9,8 +9,9 @@
 namespace Realejo\Db;
 
 use PHPUnit_Framework_TestCase;
-
-require_once 'Realejo/Db/TableAdapter.php';
+use \Zend\Db\Adapter\Adapter;
+use Realejo\Db\TableAdapter;
+//require_once 'Realejo/Db/TableAdapter.php';
 
 /**
  * TableAdapter test case.
@@ -32,35 +33,71 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      */
     private $TableAdapter;
 
-    private $pdo = null;
+    /**
+     * @var Zend\Db\Adapter\Adapter
+     */
+    private $pdoAdapter = null;
 
     /**
-     * instancie PHPUnit_Extensions_Database_DB_IDatabaseConnection apenas uma vez por teste
-     * @var
+     * @return \Zend\Db\Adapter\Adapter
      */
-    private $conn = null;
-
-    public function getConnection()
+    public function getPdoAdapter()
     {
-        if ($this->pdo === null) {
-            $this->pdo = new \Zend\Db\Adapter\Adapter(array(
+        if ($this->pdoAdapter === null) {
+            $this->pdoAdapter = new \Zend\Db\Adapter\Adapter(array(
                 'driver'   => 'Pdo_Sqlite',
+                'database' => realpath(__DIR__ . '/../../assets') . '/sqlite.db'
              ));
         }
-        return $this->pdo;
+        return $this->pdoAdapter;
     }
 
-    public function createDatabase()
+    /**
+     * @return \Realejo\Db\TableAdapterTest
+     */
+    public function createTable()
     {
-        $conn = $this->getConnection();
-        $conn->exec("
-                CREATE TABLE album (
-                id smallint(10) NOT NULL auto_increment,
+        $conn = $this->getPdoAdapter();
+        $conn->query("
+                CREATE TABLE {$this->tableName} (
+                {$this->tableKeyName} INTEGER PRIMARY KEY ASC,
                 artist varchar(100) NOT NULL,
                 title varchar(100) NOT NULL,
-                deleted tinyint(1) UNSIGNED NOT NULL DEFALT 0,
-                PRIMARY KEY (id)
-        );");
+                deleted INTEGER UNSIGNED NOT NULL DEFAULT 0
+        );", Adapter::QUERY_MODE_EXECUTE);
+
+        return $this;
+    }
+
+    /**
+     * @return \Realejo\Db\TableAdapterTest
+     */
+    public function insertDefaultRows()
+    {
+        $conn = $this->getPdoAdapter();
+        $conn->query("INSERT into {$this->tableName}({$this->tableKeyName}, artist, title, deleted) VALUES (1, 'Rush', 'Rush', 0);", Adapter::QUERY_MODE_EXECUTE);
+        $conn->query("INSERT INTO {$this->tableName}({$this->tableKeyName}, artist, title, deleted) VALUES (2, 'Rush', 'Moving Pictures', 0);", Adapter::QUERY_MODE_EXECUTE);
+        $conn->query("INSERT INTO {$this->tableName}({$this->tableKeyName}, artist, title, deleted) VALUES (3, 'Dream Theater', 'Images And Words', 0);", Adapter::QUERY_MODE_EXECUTE);
+        $conn->query("INSERT INTO {$this->tableName}({$this->tableKeyName}, artist, title, deleted) VALUES (4, 'Claudia Leitte', 'Exttravasa', 1);", Adapter::QUERY_MODE_EXECUTE);
+        return $this;
+    }
+
+    /**
+     * @return \Realejo\Db\TableAdapterTest
+     */
+    public function dropTable()
+    {
+        $this->getPdoAdapter()->query("DROP TABLE IF EXISTS {$this->tableName}", Adapter::QUERY_MODE_EXECUTE);
+        return $this;
+    }
+
+    /**
+     * @return \Realejo\Db\TableAdapterTest
+     */
+    public function truncateTable()
+    {
+        $this->dropTable()->createTable();
+        return $this;
     }
 
     /**
@@ -68,8 +105,8 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      */
     protected function setUp()
     {
-        // TODO Auto-generated TableAdapterTest::setUp()
         parent::setUp();
+        $this->dropTable()->createTable()->insertDefaultRows();
     }
 
     /**
@@ -77,15 +114,17 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      */
     protected function tearDown()
     {
-        // TODO Auto-generated TableAdapterTest::tearDown()
-
         parent::tearDown();
+        $this->dropTable();
     }
 
-    public function getTableAdapter()
+    /**
+     * @return TableAdapter
+     */
+    public function getTableAdapter($reset = false)
     {
-        if ($this->TableAdapter === null) {
-            $this->TableAdapter = new TableAdapter($this->tableName, $this->tableKeyName, $this->getConnection());
+        if ($this->TableAdapter === null || $reset === true) {
+            $this->TableAdapter = new TableAdapter($this->tableName, $this->tableKeyName, $this->getPdoAdapter());
         }
         return $this->TableAdapter;
     }
@@ -121,7 +160,7 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      * Constructs the test case copm adapter inválido. Ele deve ser Zend\Db\Adapter\Adapter\AdapterInterface
      * @expectedException Exception
      */
-    public function testCosntructComAdapterInvalido()
+    public function testConstructComAdapterInvalido()
     {
         $tableAdapter = new TableAdapter($this->tableName, $this->tableKeyName, new \PDO('sqlite::memory:'));
     }
@@ -131,10 +170,19 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreateTableAdapter()
     {
-        $tableAdapter = new TableAdapter($this->tableName, $this->tableKeyName, $this->getConnection());
+        $tableAdapter = new TableAdapter($this->tableName, $this->tableKeyName, $this->getPdoAdapter());
         $this->assertInstanceOf('Realejo\Db\TableAdapter', $tableAdapter);
     }
 
+    /**
+     * teste o adapter PDO
+     */
+    public function testPdoAdatper()
+    {
+        $this->assertNull($this->pdoAdapter);
+        $this->assertInstanceOf('\Zend\Db\Adapter\Adapter', $this->getPdoAdapter());
+        $this->assertInstanceOf('\Zend\Db\Adapter\Adapter', $this->pdoAdapter);
+    }
 
     /**
      * Tests TableAdapter->getOrder()
@@ -162,24 +210,40 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests TableAdapter->getWhere()
      */
-    public function testGetWhere()
+    public function testWhere()
     {
-        // TODO Auto-generated TableAdapterTest->testGetWhere()
-        $this->markTestIncomplete("getWhere test not implemented");
+        // Verifica a ordem padrão
+        $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getTableAdapter()->getWhere());
+        $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getTableAdapter()->getWhere(null));
+        $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getTableAdapter()->getWhere(array()));
+        $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getTableAdapter()->getWhere(''));
+        $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getTableAdapter()->getWhere(0));
 
-        $this->getTableAdapter()->getWhere(/* parameters */);
+        $this->assertEquals(array("{$this->tableName}.deleted=1"), $this->getTableAdapter()->getWhere(array('deleted'=>true)));
+        $this->assertEquals(array("{$this->tableName}.deleted=1"), $this->getTableAdapter()->getWhere(array('deleted'=>1)));
+        $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getTableAdapter()->getWhere(array('deleted'=>false)));
+        $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getTableAdapter()->getWhere(array('deleted'=>0)));
 
-    }
+        $this->assertEquals(array(
+                "outratabela.campo=0",
+                "{$this->tableName}.deleted=0"
+        ), $this->getTableAdapter()->getWhere(array('outratabela.campo'=>0)));
 
-    /**
-     * Tests TableAdapter->getSelect()
-     */
-    public function testGetSelect()
-    {
-        // TODO Auto-generated TableAdapterTest->testGetSelect()
-        $this->markTestIncomplete("getSelect test not implemented");
+        $this->assertEquals(array(
+                "outratabela.deleted=1",
+                "{$this->tableName}.deleted=0"
+                ), $this->getTableAdapter()->getWhere(array('outratabela.deleted'=>1)));
 
-        $this->getTableAdapter()->getSelect(/* parameters */);
+        $this->assertEquals(array(
+                "{$this->tableName}.{$this->tableKeyName}=1",
+                "{$this->tableName}.deleted=0"
+        ), $this->getTableAdapter()->getWhere(array($this->tableKeyName=>1)));
+
+       $dbExpression = new \Zend\Db\Sql\Expression('now()');
+        $this->assertEquals(array(
+                $dbExpression,
+                "{$this->tableName}.deleted=0"
+                ), $this->getTableAdapter()->getWhere(array($dbExpression)));
 
     }
 
@@ -212,10 +276,11 @@ class TableAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testFetchRow()
     {
-        // TODO Auto-generated TableAdapterTest->testFetchRow()
-        $this->markTestIncomplete("fetchRow test not implemented");
+        $this->truncateTable()->insertDefaultRows();
+        $album = $this->getTableAdapter()->fetchRow(1);
+        var_dump($album);
 
-        $this->getTableAdapter()->fetchRow(/* parameters */);
+        die();
 
     }
 
