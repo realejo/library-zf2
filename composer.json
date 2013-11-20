@@ -1,7 +1,8 @@
 {
-    "name": "realejo/zf2mvclib",
-    "description": "MVC LIb para projetos da Realejo",
+    "name": "realejo/zf2-library",
+    "description": "Biblioteca com models comuns utilizados nos projetos ZF2.",
     "license": "BSD-3-Clause",
+    "type": "library",
     "keywords": [
         "framework",
         "zf2",
@@ -11,5 +12,10 @@
     "require": {
         "php": ">=5.3.3",
         "zendframework/zendframework": "2.2.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Realejo\\": "library/"
+        }
     }
 }
