@@ -300,7 +300,7 @@ class TableAdapter
 
     public function delete($id)
     {
-        // VBerifica se é uma chave válida
+        // Verifica se é uma chave válida
         if (!is_numeric($id)) {
             throw new \Exception("Inválido o Código $id em '{$this->table}'::delete()");
         }
