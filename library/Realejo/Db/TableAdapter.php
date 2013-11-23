@@ -300,11 +300,12 @@ class TableAdapter
 
     public function delete($id)
     {
-        // Caso não seja, envia um Exception
+        // VBerifica se é uma chave válida
         if (!is_numeric($id)) {
             throw new \Exception("Inválido o Código $id em '{$this->table}'::delete()");
         }
 
+        // Verifica se deve marcar como removido ou remover o registro
         if ($this->useDeleted === true) {
             $this->tableGateway->update(array('deleted'=>1), array($this->key => $id));
         } else {
