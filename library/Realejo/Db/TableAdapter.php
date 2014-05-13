@@ -106,7 +106,7 @@ class TableAdapter
         return $this;
     }
 
-	/*
+	/**
      * Return the where clause
      *
      * @param string|array $where  OPTIONAL An SQL WHERE clause.
