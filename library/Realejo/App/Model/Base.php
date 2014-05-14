@@ -419,23 +419,22 @@ class Base
     /**
      * Retorna o HTML de um <select> apra usar em formulários
      *
-     * @param string $nome
-     *            Nome/ID a ser usado no <select>
-     * @param array $where
-     *            Filtro dos valores disponíveis
-     * @param string $selecionado
-     *            Valor selecionado
-     * @param string $legenda
-     *            Texto a ser usado quando não houver valor selecionado. Será usado um valor vazio.
-     * @param boolean $keepEmpty
-     *            Indica se deve manter a legenda/valor vazio quando houver um valor selecionado
+     * @param string $nome        Nome/ID a ser usado no <select>
+     * @param string $selecionado Valor pré seleiconado
+     * @param string $opts        Opções adicionais
+     *
+     * As opções adicionais podem ser
+     *  - where       => filtro para ser usando no fetchAll()
+     *  - placeholder => legenda quando nenhum estiver selecionado e/ou junto com show-empty
+     *  - show-empty  => mostra um <option> vazio no inicio mesmo com um selecionado
      *
      * @return string
      */
-    public function getHtmlSelect($nome, $where = null, $selecionado = null, $legenda = '', $keepEmpty = false)
+    public function getHtmlSelect($nome, $selecionado = null, $opts = null)
     {
         // Recupera os registros
-        $fetchAll = $this->fetchAll($where);
+        $where = (isset($opts['where'])) ? $opts['where'] : null;
+        $fetchAll = $this->fetchAll();
 
         // Verifica o select_option_data
         if (isset($this->select_option_data) && is_string($this->select_option_data)) {
@@ -443,6 +442,12 @@ class Base
                 $this->select_option_data
             );
         }
+
+        // Verifica se deve manter um em branco
+        $showEmpty = (isset($opts['show-empty']) && $opts['show-empty'] === true);
+
+        // Define ao plcaeholder aser usado
+        $placeholder = (isset($opts['placeholder'])) ? $opts['placeholder'] : '';
 
         // Monta as opções
         $options = '';
@@ -485,10 +490,10 @@ class Base
         $select = "<select class=\"form-control\" name=\"$nome\" id=\"$nome\">";
 
         // Verifica se tem valor padrão selecionado
-        if (empty($selecionado) || $keepEmpty)
-            $select .= "<option value=\"\">$legenda</option>";
+        if (empty($selecionado) || $showEmpty)
+            $select .= "<option value=\"\">$placeholder</option>";
 
-            // Coloca as opções
+        // Coloca as opções
         $select .= $options;
 
         // Fecha o select
