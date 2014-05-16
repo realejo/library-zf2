@@ -101,14 +101,14 @@ class Base
      *
      * @var string
      */
-    protected $select_option = '{nome}';
+    protected $htmlSelectOption = '{nome}';
 
     /**
      * Campos a serem adicionados no <option> como data
      *
      * @var string array
      */
-    protected $select_option_data;
+    protected $htmlSelectOptionData;
 
     public function __construct($table = null, $key = null, $dbAdapter = null)
     {
@@ -125,8 +125,12 @@ class Base
         $this->table = $table;
 
         // Define o adapter padrão
-        if (! empty($dbAdapter)) {
-            $this->_dbAdapter = $dbAdapter;
+        if ( !empty($dbAdapter) ) {
+            if ($dbAdapter instanceof AdapterInterface) {
+                $this->_dbAdapter = $dbAdapter;
+            } else {
+                throw new \Exception('Adapter deve ser Zend\Db\Adapter\AdapterInterface');
+            }
         }
     }
 
@@ -176,8 +180,7 @@ class Base
     /**
      * Return the where clause
      *
-     * @param string|array $where
-     *            OPTIONAL An SQL WHERE clause.
+     * @param string|array $where OPTIONAL Consulta SQL
      *
      * @return array null
      */
@@ -188,13 +191,13 @@ class Base
 
         // Checks $where is not null
         if (empty($where)) {
-            if (! $this->showDeleted) {
+            if ($this->getUseDeleted() && !$this->getShowDeleted()) {
                 $this->where[] = "{$this->getTableGateway()->getTable()}.deleted=0";
             }
         } else {
 
             // Checks $where is deleted
-            if (! isset($where['deleted']) && ! $this->showDeleted) {
+            if ($this->getUseDeleted() && !$this->getShowDeleted() && !isset($where['deleted'])) {
                 $where['deleted'] = 0;
             }
 
@@ -265,14 +268,10 @@ class Base
     /**
      * Retorna o select para a consulta
      *
-     * @param string|array $where
-     *            OPTIONAL An SQL WHERE clause
-     * @param string|array $order
-     *            OPTIONAL An SQL ORDER clause.
-     * @param int $count
-     *            OPTIONAL An SQL LIMIT count.
-     * @param int $offset
-     *            OPTIONAL An SQL LIMIT offset.
+     * @param mixed     $where  OPTIONAL Condições SQL
+     * @param array|int $order  OPTIONAL Ordem dos registros
+     * @param int       $count  OPTIONAL Limite de registros
+     * @param int       $offset OPTIONAL Offset
      *
      * @return Zend_Db_Table_Select
      */
@@ -282,9 +281,7 @@ class Base
          *
          * @var \Zend\Db\Sql\Select
          */
-        $select = $this->getTableGateway()
-                       ->getSql()
-                       ->select();
+        $select = $this->getSQLSelect();
 
         // Define a ordem
         if (empty($order)) {
@@ -310,6 +307,29 @@ class Base
         return $select;
     }
 
+    /**
+     * Retorna o Select básico do model
+     * Sobrescreva este método para inlcuir os joins
+     *
+     * @return \Zend\Db\Sql\Select
+     */
+    public function getSQLSelect()
+    {
+        return $this->getTableGateway()
+                    ->getSql()
+                    ->select();
+    }
+
+    /**
+     * Retorna a consulta SQL que será executada
+     *
+     * @param mixed     $where  OPTIONAL Condições SQL
+     * @param array|int $order  OPTIONAL Ordem dos registros
+     * @param int       $count  OPTIONAL Limite de registros
+     * @param int       $offset OPTIONAL Offset
+     *
+     * @return string
+     */
     public function getSQlString($where = null, $order = null, $count = null, $offset = null)
     {
         return $this->getSelect($where, $order, $count, $offset)->getSqlString();
@@ -318,14 +338,11 @@ class Base
     /**
      * Retorna vários registros da tabela
      *
-     * @param mixed $where
-     *            Condições SQL
-     * @param array|int $order
-     *            Ordem dos registros
-     * @param int $count
-     *            Limite de registros
-     * @param int $offset
-     *            Offset
+     * @param mixed     $where  OPTIONAL Condições SQL
+     * @param array|int $order  OPTIONAL Ordem dos registros
+     * @param int       $count  OPTIONAL Limite de registros
+     * @param int       $offset OPTIONAL Offset
+     *
      * @return array
      */
     public function fetchAll($where = null, $order = null, $count = null, $offset = null)
@@ -346,20 +363,21 @@ class Base
     /**
      * Recupera um registro
      *
-     * @param mixed $where
-     *            condições para localizar o usuário
+     * @param mixed        $where Condições para localizar o usuário
+     * @param array|string $order OPTIONAL Ordem a ser considerada
      *
-     * @return array null com os dados do usuário ou null se não localizar
+     * @return array|null array com os dados do usuário ou null se não localizar
      */
     public function fetchRow($where, $order = null)
     {
         // Define o código do usuário
-        if (is_numeric($where))
+        if (is_numeric($where)) {
             $where = array(
                 $this->key => $where
             );
+        }
 
-            // Recupera o usuário
+        // Recupera o usuário
         $row = $this->fetchAll($where, $order, 1);
 
         // Retorna o usuário
@@ -369,12 +387,10 @@ class Base
     /**
      * Retorna um array associado com os usuários com a chave sendo o código deles
      *
-     * @param mixed $where
-     *            Condições SQL
-     * @param array|int $order
-     *            Ordem dos usuários
-     * @param int $count
-     * @param int $offset
+     * @param mixed     $where  OPTIONAL Condições SQL
+     * @param array|int $order  OPTIONAL Ordem dos registros
+     * @param int       $count  OPTIONAL Limite de registros
+     * @param int       $offset OPTIONAL Offset
      *
      * @return array
      */
@@ -437,9 +453,9 @@ class Base
         $fetchAll = $this->fetchAll();
 
         // Verifica o select_option_data
-        if (isset($this->select_option_data) && is_string($this->select_option_data)) {
-            $this->select_option_data = array(
-                $this->select_option_data
+        if (isset($this->htmlSelectOptionData) && is_string($this->htmlSelectOptionData)) {
+            $this->htmlSelectOptionData = array(
+                $this->htmlSelectOptionData
             );
         }
 
@@ -453,7 +469,7 @@ class Base
         $options = '';
         if (! empty($fetchAll)) {
             foreach ($fetchAll as $row) {
-                preg_match_all('/\{([a-z_]*)\}/', $this->select_option, $matches);
+                preg_match_all('/\{([a-z_]*)\}/', $this->htmlSelectOption, $matches);
 
                 // Troca pelos valores
                 foreach ($matches[1] as $i => $m) {
@@ -461,13 +477,13 @@ class Base
                 }
 
                 // Define o option
-                $option = str_replace($matches[0], $matches[1], $this->select_option);
+                $option = str_replace($matches[0], $matches[1], $this->htmlSelectOption);
 
                 // Verifica se deve adicionar campos ao data
                 $data = '';
-                if (isset($this->select_option_data)) {
+                if (isset($this->htmlSelectOptionData)) {
                     $data = '';
-                    foreach ($this->select_option_data as $name => $field) {
+                    foreach ($this->htmlSelectOptionData as $name => $field) {
                         if (is_numeric($name)) {
                             $name = $field;
                         }
@@ -586,9 +602,10 @@ class Base
     /**
      * Getters and setters
      */
+
     /**
      *
-     * @return the $table
+     * @return string
      */
     public function getTable()
     {
@@ -597,7 +614,7 @@ class Base
 
     /**
      *
-     * @return the $key
+     * @return string
      */
     public function getKey()
     {
@@ -606,7 +623,7 @@ class Base
 
     /**
      *
-     * @return the $order
+     * @return string|array
      */
     public function getOrder()
     {
@@ -615,45 +632,27 @@ class Base
 
     /**
      *
-     * @return the $select_option
+     * @return string
      */
-    public function getSelect_option()
+    public function getHtmlSelectOption()
     {
-        return $this->select_option;
+        return $this->htmlSelectOption;
     }
 
     /**
      *
-     * @return the $select_option_data
+     * @return array|string
      */
-    public function getSelect_option_data()
+    public function getHtmlSelectOptionData()
     {
-        return $this->select_option_data;
-    }
-
-    /**
-     *
-     * @param string $table
-     */
-    public function setTable($table)
-    {
-        $this->table = $table;
-        return $this;
-    }
-
-    /**
-     *
-     * @param string $key
-     */
-    public function setKey($key)
-    {
-        $this->key = $key;
-        return $this;
+        return $this->htmlSelectOptionData;
     }
 
     /**
      *
      * @param string $order
+     *
+     * @return \Realejo\App\Model\Base
      */
     public function setOrder($order)
     {
@@ -661,24 +660,28 @@ class Base
         return $this;
     }
 
+
     /**
      *
-     * @param string $select_option
+     * @param string $htmlSelectOption
+     *
+     * @return \Realejo\App\Model\Base
      */
-    public function setSelect_option($select_option)
+    public function setHtmlSelectOption($htmlSelectOption)
     {
-        $this->select_option = $select_option;
+        $this->htmlSelectOption = $htmlSelectOption;
         return $this;
     }
 
     /**
      *
-     * @param
-     *            Ambigous <string, multitype:> $select_option_data
+     * @param array|string $htmlSelectOptionData
+     *
+     * @return \Realejo\App\Model\Base
      */
-    public function setSelect_option_data($select_option_data)
+    public function setHtmlSelectOptionData($htmlSelectOptionData)
     {
-        $this->select_option_data = $select_option_data;
+        $this->htmlSelectOptionData = $htmlSelectOptionData;
         return $this;
     }
 
@@ -697,7 +700,7 @@ class Base
      *
      * @param boolean $useDeleted
      *
-     * @return TableAdapter
+     * @return  Realejo\App\Model\Base
      */
     public function setUseDeleted($useDeleted)
     {
@@ -722,7 +725,7 @@ class Base
      *
      * @param boolean $showDeleted
      *
-     * @return TableAdapter
+     * @return  Realejo\App\Model\Base
      */
     public function setShowDeleted($showDeleted)
     {

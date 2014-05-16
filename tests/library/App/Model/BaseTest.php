@@ -1,11 +1,11 @@
 <?php
 /**
- * TableAdapterTest test case.
+ * BaseTest test case.
  *
  * @author     Realejo
  * @copyright  Copyright (c) 2014 Realejo Design Ltda. (http://www.realejo.com.br)
  */
-use Realejo\App\Model\Base, Zend\Db\Adapter\Adapter, Realejo\Db\TableAdapter;
+use Realejo\App\Model\Base, Zend\Db\Adapter\Adapter;
 
 /**
  * Base test case.
@@ -81,7 +81,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
 
     /**
      *
-     * @return \Realejo\Db\TableAdapterTest
+     * @return \Realejo\Db\BaseTest
      */
     public function createTable()
     {
@@ -99,7 +99,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
 
     /**
      *
-     * @return \Realejo\Db\TableAdapterTest
+     * @return \Realejo\Db\BaseTest
      */
     public function insertDefaultRows()
     {
@@ -113,7 +113,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
 
     /**
      *
-     * @return \Realejo\Db\TableAdapterTest
+     * @return \Realejo\Db\BaseTest
      */
     public function dropTable()
     {
@@ -123,7 +123,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
 
     /**
      *
-     * @return \Realejo\Db\TableAdapterTest
+     * @return \Realejo\Db\BaseTest
      */
     public function truncateTable()
     {
@@ -180,31 +180,21 @@ class BaseTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Constructs the test case sem adapter. Por que não tem "applicaion.ini"
-     * @expectedException Exception
-     */
-    public function testConstructSemAdapter()
-    {
-        new Base($this->tableName, $this->tableKeyName);
-    }
-
-
-    /**
      * Constructs the test case copm adapter inválido. Ele deve ser Zend\Db\Adapter\Adapter\AdapterInterface
      * @expectedException Exception
      */
     public function testConstructComAdapterInvalido()
     {
-        $tableAdapter = new TableAdapter($this->tableName, $this->tableKeyName, new \PDO('sqlite::memory:'));
+        $Base = new Base($this->tableName, $this->tableKeyName, new \PDO('sqlite::memory:'));
     }
 
     /**
      * test a criação com a conexão local de testes
      */
-    public function testCreateTableAdapter()
+    public function testCreateBase()
     {
-        $tableAdapter = new TableAdapter($this->tableName, $this->tableKeyName, $this->getPdoAdapter());
-        $this->assertInstanceOf('Realejo\Db\TableAdapter', $tableAdapter);
+        $Base = new Base($this->tableName, $this->tableKeyName, $this->getPdoAdapter());
+        $this->assertInstanceOf('Realejo\App\Model\Base', $Base);
     }
 
     /**
@@ -218,7 +208,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
 
 
     /**
-     * Tests TableAdapter->getOrder()
+     * Tests Base->getOrder()
      */
     public function testOrder()
     {
@@ -241,10 +231,14 @@ class BaseTest extends PHPUnit_Framework_TestCase
 
 
     /**
-     * Tests TableAdapter->getWhere()
+     * Tests Base->getWhere()
      */
     public function testWhere()
     {
+
+        // Marca pra usar o campo deleted
+        $this->getBase()->setUseDeleted(true);
+
         // Verifica a ordem padrão
         $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getBase()->getWhere());
         $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getBase()->getWhere(null));
@@ -262,7 +256,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
             "{$this->tableName}.deleted=0"
         ), $this->getBase()->getWhere(array('outratabela.campo'=>0)));
 
-            $this->assertEquals(array(
+        $this->assertEquals(array(
                 "outratabela.deleted=1",
                 "{$this->tableName}.deleted=0"
         ), $this->getBase()->getWhere(array('outratabela.deleted'=>1)));
@@ -287,10 +281,9 @@ class BaseTest extends PHPUnit_Framework_TestCase
     {
         // Verifica se deve remover o registro
         $this->assertFalse($this->getBase()->getUseDeleted());
-        $this->assertFalse($this->getBase()->setUseDeleted(false)->getUseDeleted());
         $this->assertTrue($this->getBase()->setUseDeleted(true)->getUseDeleted());
+        $this->assertFalse($this->getBase()->setUseDeleted(false)->getUseDeleted());
         $this->assertFalse($this->getBase()->getUseDeleted());
-
 
         // Verifica se deve mostrar o registro
         $this->assertFalse($this->getBase()->getShowDeleted());
@@ -300,42 +293,86 @@ class BaseTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests TableAdapter->getSQlString()
+     * Tests Base->getSQlString()
      */
     public function testGetSQlString()
     {
-        // TODO Auto-generated TableAdapterTest->testGetSQlString()
-        $this->markTestIncomplete("getSQlString test not implemented");
+        // Verfiica o padrão não usar o campo deleted e não mostrar os removidos
+        $this->assertEquals('SELECT "album".* FROM "album"', $this->getBase()->getSQlString(), 'showDeleted=false, useDeleted=false');
 
-        $this->getBase()->getSQlString(/* parameters */);
+        // Marca para usar o campo deleted
+        $this->getBase()->setUseDeleted(true);
+        $this->assertEquals('SELECT "album".* FROM "album" WHERE album.deleted=0', $this->getBase()->getSQlString(), 'showDeleted=false, useDeleted=true');
+
+        // Marca para não usar o campo deleted
+        $this->getBase()->setUseDeleted(false);
+
+        $this->assertEquals('SELECT "album".* FROM "album" WHERE album.id=1234', $this->getBase()->getSQlString(array('id'=>1234)));
+        $this->assertEquals("SELECT \"album\".* FROM \"album\" WHERE album.texto='textotextotexto'", $this->getBase()->getSQlString(array('texto'=>'textotextotexto')));
 
     }
 
     /**
-     * Tests TableAdapter->fetchAll()
+     * Tests Base->testGetSQlSelect()
+     */
+    public function testGetSQlSelect()
+    {
+        $select = $this->getBase()->getSQlSelect();
+        $this->assertInstanceOf('Zend\Db\Sql\Select', $select);
+        $this->assertEquals($select->getSqlString(), $this->getBase()->getSQlString());
+    }
+
+    /**
+     * Tests Base->fetchAll()
      */
     public function testFetchAll()
     {
+
+        // O padrão é não usar o campo deleted
+        $albuns = $this->getBase()->fetchAll();
+        $this->assertCount(4, $albuns, 'showDeleted=false, useDeleted=false');
+
+        // Marca para mostrar os removidos e não usar o campo deleted
+        $this->getBase()->setShowDeleted(true)->setUseDeleted(false);
+        $this->assertCount(4, $this->getBase()->fetchAll(), 'showDeleted=true, useDeleted=false');
+
+        // Marca pra não mostar os removidos e usar o campo deleted
+        $this->getBase()->setShowDeleted(false)->setUseDeleted(true);
+        $this->assertCount(3, $this->getBase()->fetchAll(), 'showDeleted=false, useDeleted=true');
+
+        // Marca pra mostrar os removidos e usar o campo deleted
+        $this->getBase()->setShowDeleted(true)->setUseDeleted(true);
+        $albuns = $this->getBase()->fetchAll();
+        $this->assertCount(4, $albuns, 'showDeleted=true, useDeleted=true');
+
+        // Marca não mostrar os removios
+        $this->getBase()->setShowDeleted(false);
+
         $albuns = $this->defaultValues;
-        unset($albuns[3]); // remov o deleted=1
+        unset($albuns[3]); // remove o deleted=1
         $this->assertEquals($albuns, $this->getBase()->fetchAll());
 
+        // Marca mostrar os removios
         $this->getBase()->setShowDeleted(true);
+
         $this->assertEquals($this->defaultValues, $this->getBase()->fetchAll());
-        $this->assertEquals(4, count($this->getBase()->fetchAll()));
+        $this->assertCount(4, $this->getBase()->fetchAll());
         $this->getBase()->setShowDeleted(false);
-        $this->assertEquals(3, count($this->getBase()->fetchAll()));
+        $this->assertCount(3, $this->getBase()->fetchAll());
 
         // Verifica o where
-        $this->assertEquals(2, count($this->getBase()->fetchAll(array('artist'=>$albuns[0]['artist']))));
+        $this->assertCount(2, $this->getBase()->fetchAll(array('artist'=>$albuns[0]['artist'])));
         $this->assertNull($this->getBase()->fetchAll(array('artist'=>$this->defaultValues[3]['artist'])));
     }
 
     /**
-     * Tests TableAdapter->fetchRow()
+     * Tests Base->fetchRow()
      */
     public function testFetchRow()
     {
+        // Marca pra usar o campo deleted
+        $this->getBase()->setUseDeleted(true);
+
         // Verifica os itens que existem
         $this->assertEquals($this->defaultValues[0], $this->getBase()->fetchRow(1));
         $this->assertEquals($this->defaultValues[1], $this->getBase()->fetchRow(2));
@@ -350,53 +387,34 @@ class BaseTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests TableAdapter->fetchAssoc()
+     * Tests Base->fetchAssoc()
      */
     public function testFetchAssoc()
     {
+        // O padrão é não usar o campo deleted
         $albuns = $this->getBase()->fetchAssoc();
-        $this->assertEquals(3, count($albuns));
-        $this->assertEquals($this->defaultValues[0], $albuns[1]);
-        $this->assertEquals($this->defaultValues[1], $albuns[2]);
-        $this->assertEquals($this->defaultValues[2], $albuns[3]);
-
-        $albuns = $this->getBase()->setShowDeleted(true)->fetchAssoc();
-        $this->assertEquals(4, count($albuns));
+        $this->assertCount(4, $albuns, 'showDeleted=false, useDeleted=false');
         $this->assertEquals($this->defaultValues[0], $albuns[1]);
         $this->assertEquals($this->defaultValues[1], $albuns[2]);
         $this->assertEquals($this->defaultValues[2], $albuns[3]);
         $this->assertEquals($this->defaultValues[3], $albuns[4]);
 
-        $albuns = $this->getBase()->setShowDeleted(false)->fetchAssoc();
-        $this->assertEquals(3, count($albuns));
+        // Marca para mostrar os removidos e não usar o campo deleted
+        $this->getBase()->setShowDeleted(true)->setUseDeleted(false);
+        $this->assertCount(4, $this->getBase()->fetchAssoc(), 'showDeleted=true, useDeleted=false');
+
+        // Marca pra não mostar os removidos e usar o campo deleted
+        $this->getBase()->setShowDeleted(false)->setUseDeleted(true);
+        $this->assertCount(3, $this->getBase()->fetchAssoc(), 'showDeleted=false, useDeleted=true');
+
+        // Marca pra mostrar os removidos e usar o campo deleted
+        $this->getBase()->setShowDeleted(true)->setUseDeleted(true);
+        $albuns = $this->getBase()->fetchAssoc();
+        $this->assertCount(4, $albuns, 'showDeleted=true, useDeleted=true');
         $this->assertEquals($this->defaultValues[0], $albuns[1]);
         $this->assertEquals($this->defaultValues[1], $albuns[2]);
         $this->assertEquals($this->defaultValues[2], $albuns[3]);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * Constructs the test case.
-     */
-    public function __construct()
-    {
-        // TODO Auto-generated constructor
+        $this->assertEquals($this->defaultValues[3], $albuns[4]);
     }
 
     /**
@@ -424,12 +442,22 @@ class BaseTest extends PHPUnit_Framework_TestCase
     /**
      * Tests Base->getTable()
      */
-    public function testGetTable()
+    public function testGetTableGetKey()
     {
-        // TODO Auto-generated BaseTest->testGetTable()
-        $this->markTestIncomplete("getTable test not implemented");
+        $Base = new Base('tablename', 'keyname');
+        $this->assertNotNull($Base->getTable());
+        $this->assertNotNull($Base->getKey());
+        $this->assertEquals('tablename', $Base->getTable());
+        $this->assertEquals('keyname', $Base->getKey());
 
-        $this->Base->getTable(/* parameters */);
+        /*
+        // @todo permitir chaves compostas
+        $Base = new Base('tablename', array('key1', 'key2'));
+        $this->assertNotNull($Base->getTable());
+        $this->assertNotNull($Base->getKey());
+        $this->assertEquals('tablename', $Base->getTable());
+        $this->assertEquals(array('key1', 'key2'), $Base->getKey());
+         */
     }
 
     /**
