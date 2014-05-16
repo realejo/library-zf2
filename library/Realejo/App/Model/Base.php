@@ -162,7 +162,7 @@ class Base
         $this->_loader = $loader;
     }
 
-    /**
+	/**
      *
      * @return TableGateway
      */
