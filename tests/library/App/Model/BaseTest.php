@@ -417,6 +417,18 @@ class BaseTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($this->defaultValues[3], $albuns[4]);
     }
 
+
+    /**
+     * Tests Base->getFetchAllExtraFields()
+     */
+    public function testGetFetchAllExtraFields()
+    {
+        // TODO Auto-generated BaseTest->testGetLoader()
+        $this->markTestIncomplete("getLoader test not implemented");
+
+        $this->Base->getFetchAllExtraFields(/* parameters */);
+    }
+
     /**
      * Tests Base->getLoader()
      */

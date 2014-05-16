@@ -353,11 +353,45 @@ class Base
          */
         $select = $this->getSelect($where, $order, $count, $offset);
 
-        // build result set
-        $resultSet = $this->getTableGateway()->selectWith($select);
+        // Verifica se deve usar o Paginator
+        if ($this->getUsePaginator()) {
+            die('ainda não implemtado');
+            /* $fetchAll = new Zend_Paginator(new Zend_Paginator_Adapter_DbSelect($select));
 
-        // Retorna os registros
-        return (count($resultSet) > 0) ? $resultSet->toArray() : null;
+            // Verifica se deve usar o cache
+            if ($this->getUseCache()) {
+                $fetchAll->setCacheEnabled(true)->setCache($this->getCache());
+            }
+
+            // Configura o paginator
+            $fetchAll->setPageRange($this->getPaginator()->getPageRange());
+            $fetchAll->setCurrentPageNumber($this->getPaginator()->getCurrentPageNumber());
+            $fetchAll->setItemCountPerPage($this->getPaginator()->getItemCountPerPage());
+ */
+        } else {
+            // Recupera os registros do banco de dados
+            $fetchAll = $this->getTableGateway()->selectWith($select);
+
+            // Verifica se foi localizado algum registro
+            if ( !is_null($fetchAll) && count($fetchAll) > 0 ) {
+                // Passa o $fetch para array para poder incluir campos extras
+                $fetchAll = $fetchAll->toArray();
+
+                // Verifica se deve adicionar campos extras
+                $fetchAll = $this->getFetchAllExtraFields($fetchAll);
+            } else {
+                $fetchAll = null;
+            }
+
+            // Grava a consulta no cache
+            //if ($this->getUseCache()) $this->getCache()->save($fetchAll, $md5);
+        }
+
+        // Some garbage collection
+        unset($select);
+
+        // retorna o resultado da consulta
+        return $fetchAll;
     }
 
     /**
@@ -421,7 +455,7 @@ class Base
         $select = $this->getSelect($where);
 
         // Altera as colunas
-        $select->reset('columns')->columns(new Zend_Db_Expr('count(*) as total'));
+        $select->reset('columns')->columns(new \Zend\Db\Sql\Expression('count(*) as total'));
 
         $fetchRow = $this->fetchRow($select);
 
@@ -430,6 +464,18 @@ class Base
         } else {
             return $fetchRow['total'];
         }
+    }
+
+    /**
+     * Inclui campos extras ao retorno do fetchAll quando não estiver usando a paginação
+     *
+     * @param array $fetchAll
+     *
+     * @return array
+     */
+    protected function getFetchAllExtraFields($fetchAll)
+    {
+        return $fetchAll;
     }
 
     /**
@@ -567,7 +613,7 @@ class Base
     public function getPaginator()
     {
         if (! isset($this->_paginator)) {
-            $this->_paginator = new App_Model_Paginator();
+            $this->_paginator = new \Realejo\App\Model\Paginator();
         }
 
         $this->usePaginator = true;
