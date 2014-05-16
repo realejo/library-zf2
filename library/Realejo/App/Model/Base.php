@@ -112,12 +112,22 @@ class Base
 
     public function __construct($table = null, $key = null, $dbAdapter = null)
     {
-        if ((empty($table) || ! is_string($table)) && ! isset($this->table)) {
-            throw new \Exception('Nome da tabela inválido');
+        // Verifica o nome da tabela
+        if (empty($table) && !is_string($table)) {
+            if (isset($this->table)) {
+                $table = $this->table;
+            } else {
+                throw new \Exception('Nome da tabela inválido');
+            }
         }
 
-        if ((empty($key) || ! is_string($key)) && ! isset($this->key)) {
-            throw new \Exception('Nome da chave inválido');
+        // Verifica o nome da chave
+        if (empty($key) && !is_string($key)) {
+            if (isset($this->key)) {
+                $key = $this->key;
+            } else {
+                throw new \Exception('Nome da chave inválido');
+            }
         }
 
         // Define a chave e o nome da tabela
