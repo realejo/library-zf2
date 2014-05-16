@@ -5,7 +5,7 @@
  * @author     Realejo
  * @copyright  Copyright (c) 2014 Realejo Design Ltda. (http://www.realejo.com.br)
  */
-use Realejo\App\Model\Db, Zend\Db\Adapter\Adapter, Realejo\Db\TableAdapter;
+use Realejo\App\Model\Db, Zend\Db\Adapter\Adapter;
 
 /**
  * Db test case.
