@@ -137,9 +137,9 @@ class DbTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests Db->create()
+     * Tests Db->insert()
      */
-    public function testCreate()
+    public function testInsert()
     {
         // Certifica que a tabela está vazia
         $this->assertNull($this->getDb()->fetchAll());
@@ -151,12 +151,13 @@ class DbTest extends PHPUnit_Framework_TestCase
             'deleted' => 0
         );
 
-        $this->getDb()->create($row);
+        $this->getDb()->insert($row);
 
         $this->assertNotNull($this->getDb()->fetchAll());
         $this->assertCount(1, $this->getDb()->fetchAll());
         $this->assertEquals(array($row), $this->getDb()->fetchAll());
         $this->assertEquals($row, $this->getDb()->fetchRow(1));
+        $this->assertEquals($row, $this->getDb()->getLastInsertSet());
 
         $row = array(
             'id' => 2,
@@ -165,11 +166,12 @@ class DbTest extends PHPUnit_Framework_TestCase
             'deleted' => 0
         );
 
-        $this->getDb()->create($row);
+        $this->getDb()->insert($row);
 
         $this->assertNotNull($this->getDb()->fetchAll());
         $this->assertCount(2, $this->getDb()->fetchAll());
         $this->assertEquals($row, $this->getDb()->fetchRow(2));
+        $this->assertEquals($row, $this->getDb()->getLastInsertSet());
     }
 
     /**
@@ -180,32 +182,48 @@ class DbTest extends PHPUnit_Framework_TestCase
         // Certifica que a tabela está vazia
         $this->assertNull($this->getDb()->fetchAll());
 
-        $row = array(
+        $row1 = array(
             'id' => 1,
-            'artist' => 'Rush',
-            'title' => 'Rush',
+            'artist'  => 'Não me altere',
+            'title'   => 'Rush',
             'deleted' => 0
         );
 
-        $this->getDb()->create($row);
+        $row2 = array(
+            'id' => 2,
+            'artist'  => 'Rush',
+            'title'   => 'Rush',
+            'deleted' => 0
+        );
+
+        $this->getDb()->insert($row1);
+        $this->getDb()->insert($row2);
 
         $this->assertNotNull($this->getDb()->fetchAll());
-        $this->assertCount(1, $this->getDb()->fetchAll());
-        $this->assertEquals(array($row), $this->getDb()->fetchAll());
-        $this->assertEquals($row, $this->getDb()->fetchRow(1));
+        $this->assertCount(2, $this->getDb()->fetchAll());
+        $this->assertEquals($row1, $this->getDb()->fetchRow(1));
+        $this->assertEquals($row2, $this->getDb()->fetchRow(2));
 
         $row = array(
-            'artist' => 'Rush',
-            'title' => 'Moving Pictures',
-            'deleted' => 0
+            'artist'  => 'Rush',
+            'title'   => 'Moving Pictures',
         );
 
-        $this->getDb()->update($row, 1);
-        $row['id'] = 1;
+        $this->getDb()->update($row, 2);
+        $row['id'] = '2';
+        $row['deleted'] = '0';
 
         $this->assertNotNull($this->getDb()->fetchAll());
-        $this->assertCount(1, $this->getDb()->fetchAll());
-        $this->assertEquals($row, $this->getDb()->fetchRow(1));
+        $this->assertCount(2, $this->getDb()->fetchAll());
+        $this->assertEquals($row, $this->getDb()->fetchRow(2), 'Alterou o 2?' );
+
+        $this->assertEquals($row1, $this->getDb()->fetchRow(1), 'Alterou o 1?');
+        $this->assertNotEquals($row2, $this->getDb()->fetchRow(2), 'O 2 não é mais o mesmo?');
+
+        unset($row['id']);
+        unset($row['deleted']);
+        $this->assertEquals($row, $this->getDb()->getLastUpdateSet(), 'Os dados diferentes foram os alterados?');
+        $this->assertEquals(array('title'=>array($row2['title'], $row['title'])), $this->getDb()->getLastUpdateDiff(), 'As alterações foram detectadas corretamente?');
     }
 
     /**
@@ -219,7 +237,7 @@ class DbTest extends PHPUnit_Framework_TestCase
             'title' => 'Rush',
             'deleted' => 0
         );
-        $this->getDb()->create($row);
+        $this->getDb()->insert($row);
 
         // Verifica se o registro existe
         $this->assertEquals($row, $this->getDb()->fetchRow(1));

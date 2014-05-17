@@ -11,54 +11,70 @@ namespace Realejo\App\Model;
 class Db extends Base
 {
 
+    private $_lastInsertSet;
+
+    private $_lastInsertKey;
+
+    private $_lastUpdateSet;
+
+    private $_lastUpdateDiff;
+
+    private $_lastUpdateKey;
+
+    private $_lastDeleteKey;
+
     /**
      * Grava um novo registro
      *
-     * @param array $dados
-     *            a serem cadastrados
+     * @param array $dados Dados a serem cadastrados
      *
      * @return int boolean
      */
-    public function create($dados)
+    public function insert($set)
     {
         // Remove os campos vazios
-        foreach ($dados as $c => $v) {
-            $dados[$c] = trim($v);
-            if ($dados[$c] === '')
-                $dados[$c] = null;
+        foreach ($set as $field => $value) {
+            $set[$field] = trim($value);
+            if ($set[$field] === '') {
+                $set[$field] = null;
+            }
         }
 
-        // Cadastra a area
-        $cd = $this->getTableGateway()->insert($dados);
+        // Grava o ultimo set incluído para referencia
+        $this->_lastInsertSet = $set;
 
-        // Limpa o cache
+        // Grava o set no BD
+        $key = $this->getTableGateway()->insert($set);
+
+        // Grava a chave criada para referencia
+        $this->_lastInsertKey = $key;
+
+        // Limpa o cache se necessário
         if ($this->getUseCache()) {
             $this->getCache()->clean();
         }
 
         // Retorna o código do registro recem criado
-        return $cd;
+        return $key;
     }
 
     /**
-     * Atualização de Area
+     * Altera um registro
      *
-     * @param array $dados
-     *            Dados a serem atualizados
-     * @param int $cda
-     *            Código da area a ser atualizada
+     * @param array $set Dados a serem atualizados
+     * @param int   $key Código da area a ser atualizada
      *
      * @return boolean
      */
-    public function update($dados, $cd)
+    public function update($set, $key)
     {
         // Verifica se o código é válido
-        if (! is_numeric($cd)) {
-            throw new \Exception("O código <b>'$cd'</b> inválido em " . get_class($this) . "::update()");
+        if ( !is_numeric($key) ) {
+            throw new \Exception("O código <b>'$key'</b> inválido em " . get_class($this) . "::update()");
         }
 
         // Recupera os dados existentes
-        $row = $this->fetchRow($cd);
+        $row = $this->fetchRow($key);
 
         // Verifica se existe o registro
         if (empty($row)) {
@@ -66,24 +82,38 @@ class Db extends Base
         }
 
         // Remove os campos vazios
-        foreach ($dados as $c => $v) {
-            $dados[$c] = trim($v);
-            if ($dados[$c] === '')
-                $dados[$c] = null;
+        foreach ($set as $field => $value) {
+            $set[$field] = trim($value);
+            if ($set[$field] === '') {
+                $set[$field] = null;
+            }
         }
 
-        // Verifica se há oq atualizar
-        $diff = array_diff_assoc($dados, $row);
+        // Verifica se há o que atualizar
+        $diff = array_diff_assoc($set, $row);
+
+        // Grava os dados alterados para referencia
+        $this->_lastUpdateSet  = $set;
+        $this->_lastUpdateKey  = $key;
+
+        // Grava o que foi alterado
+        $this->_lastUpdateDiff = array();
+        foreach ($diff as $field=>$value) {
+            $this->_lastUpdateDiff[$field] = array($row[$field], $value);
+        }
 
         // Verifica se há algo para atualizar
         if (empty($diff)) {
             return false;
         }
 
-        // Salva os dados alterados
-        $return = $this->getTableGateway()->update($diff, $cd);
+        // Define a chave a ser usada
+        $key = array( $this->key => $key );
 
-        // Limpa o cache
+        // Salva os dados alterados
+        $return = $this->getTableGateway()->update($diff, $key);
+
+        // Limpa o cache, se necessário
         if ($this->getUseCache()) {
             $this->getCache()->clean();
         }
@@ -95,8 +125,7 @@ class Db extends Base
     /**
      * Excluí um registro
      *
-     * @param int $cda
-     *            Código da registro a ser excluído
+     * @param int $cda Código da registro a ser excluído
      *
      * @return bool Informa se teve o regsitro foi removido
      */
@@ -106,14 +135,20 @@ class Db extends Base
             throw new \Exception("O código <b>'$key'</b> inválido em " . get_class($this) . "::delete()");
         }
 
+        // Grava os dados alterados para referencia
+        $this->_lastDeleteKey = $key;
+
+        // Define a chave a ser usada
+        $key = array( $this->key => $key );
+
         // Verifica se deve marcar como removido ou remover o registro
         if ($this->useDeleted === true) {
-            $return = $this->getTableGateway()->update(array('deleted'=>1), array($this->key => $key));
+            $return = $this->getTableGateway()->update(array('deleted' => 1), $key);
         } else {
-            $return = $this->getTableGateway()->delete(array($this->key => $key));
+            $return = $this->getTableGateway()->delete($key);
         }
 
-        // Limpa o cache
+        // Limpa o cache se necessario
         if ($this->getUseCache()) {
             $this->getCache()->clean();
         }
@@ -124,24 +159,76 @@ class Db extends Base
 
     public function save($dados)
     {
-
-        if (!isset($dados[$this->key])) {
+        if (! isset($dados[$this->key])) {
 
             return $this->insert($dados);
-
         } else {
             // Caso não seja, envia um Exception
-            if (!is_numeric($dados[$this->key])) {
+            if (! is_numeric($dados[$this->key])) {
                 throw new \Exception("Inválido o Código '{$dados[$this->key]}' em '{$this->table}'::save()");
             }
 
             if ($this->fetchRow($dados[$this->key])) {
-                return $this->update($dados, array($this->key => $dados[$this->key]));
-
+                return $this->update($dados, array(
+                    $this->key => $dados[$this->key]
+                ));
             } else {
                 throw new \Exception("{$this->key} key does not exist");
             }
         }
     }
 
+    /**
+     *
+     * @return array
+     */
+    public function getLastInsertSet()
+    {
+        return $this->_lastInsertSet;
+    }
+
+    /**
+     *
+     * @return int
+     */
+    public function getLastInsertKey()
+    {
+        return $this->_lastInsertKey;
+    }
+
+    /**
+     *
+     * @return array
+     */
+    public function getLastUpdateSet()
+    {
+        return $this->_lastUpdateSet;
+    }
+
+    /**
+     *
+     * @return array
+     */
+    public function getLastUpdateDiff()
+    {
+        return $this->_lastUpdateDiff;
+    }
+
+    /**
+     *
+     * @return int
+     */
+    public function getLastUpdateKey()
+    {
+        return $this->_lastUpdateKey;
+    }
+
+    /**
+     *
+     * @return int
+     */
+    public function getLastDeleteKey()
+    {
+        return $this->_lastDeleteKey;
+    }
 }
