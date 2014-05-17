@@ -62,7 +62,7 @@ class Db extends Base
      * Altera um registro
      *
      * @param array $set Dados a serem atualizados
-     * @param int   $key Código da area a ser atualizada
+     * @param int   $key Chave do registro a ser alterado
      *
      * @return boolean
      */
