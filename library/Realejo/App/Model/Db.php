@@ -50,8 +50,10 @@ class Db extends Base
         $this->_lastInsertSet = $set;
 
         // Grava o set no BD
-        $key = $this->getTableGateway()->insert($set);
-        $key = $this->getTableGateway()->lastInsertValue;
+        $this->getTableGateway()->insert($set);
+
+        // Recupera a chave gerada do registro
+        $key = $this->getTableGateway()->getAdapter()->getDriver()->getLastGeneratedValue();
 
         // Grava a chave criada para referencia
         $this->_lastInsertKey = $key;

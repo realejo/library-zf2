@@ -180,8 +180,8 @@ class DbTest extends PHPUnit_Framework_TestCase
 
         $row = array_merge(array('id'=>$id), $row);
 
-        $this->assertEquals(array($row), $this->getDb()->fetchAll(), 'Verifica se o registro adicionado corresponde ao original pelo fetchAll');
-        $this->assertEquals($row, $this->getDb()->fetchRow(1), 'Verifica se o registro adicionado corresponde ao original pelo fetchRow');
+        $this->assertEquals(array($row), $this->getDb()->fetchAll(), 'Verifica se o registro adicionado corresponde ao original pelo fetchAll()');
+        $this->assertEquals($row, $this->getDb()->fetchRow(1), 'Verifica se o registro adicionado corresponde ao original pelo fetchRow()');
 
         $row = array(
                 'id' => 2,
@@ -194,8 +194,7 @@ class DbTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(2, $id, 'Verifica a chave criada=2');
 
         $this->assertCount(2, $this->getDb()->fetchAll(), 'Verifica que há DOIS registro');
-        $this->assertEquals(array($row), $this->getDb()->fetchAll(), 'Verifica se o SEGUNDO registro adicionado corresponde ao original pelo fetchAll');
-        $this->assertEquals($row, $this->getDb()->fetchRow(2), 'Verifica se o SEGUNDO registro adicionado corresponde ao original pelo fetchAll');
+        $this->assertEquals($row, $this->getDb()->fetchRow(2), 'Verifica se o SEGUNDO registro adicionado corresponde ao original pelo fetchRow()');
         $this->assertEquals($row, $this->getDb()->getLastInsertSet());
 
         $row = array(
@@ -205,10 +204,12 @@ class DbTest extends PHPUnit_Framework_TestCase
         );
         $id = $this->getDb()->insert($row);
         $this->assertEquals(3, $id);
+        $this->assertEquals($row, $this->getDb()->getLastInsertSet(), 'Verifica se o TERCEIRO registro adicionado corresponde ao original pelo getLastInsertSet()');
+
+        $row = array_merge(array('id'=>$id), $row);
 
         $this->assertCount(3, $this->getDb()->fetchAll());
-        $this->assertEquals($row, $this->getDb()->fetchRow(3));
-        $this->assertEquals($row, $this->getDb()->getLastInsertSet());
+        $this->assertEquals($row, $this->getDb()->fetchRow(3), 'Verifica se o TERCEIRO registro adicionado corresponde ao original pelo fetchRow()');
     }
 
     /**
