@@ -32,6 +32,12 @@ class Db extends Base
      */
     public function insert($set)
     {
+
+        // Verifica se há algo a ser adicionado
+        if (empty($set)) {
+            return false;
+        }
+
         // Remove os campos vazios
         foreach ($set as $field => $value) {
             $set[$field] = trim($value);
@@ -71,6 +77,11 @@ class Db extends Base
         // Verifica se o código é válido
         if ( !is_numeric($key) ) {
             throw new \Exception("O código <b>'$key'</b> inválido em " . get_class($this) . "::update()");
+        }
+
+        // Verifica se há algo para alterar
+        if (empty($set)) {
+            return false;
         }
 
         // Recupera os dados existentes

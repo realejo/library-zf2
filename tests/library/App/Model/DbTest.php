@@ -144,6 +144,9 @@ class DbTest extends PHPUnit_Framework_TestCase
         // Certifica que a tabela está vazia
         $this->assertNull($this->getDb()->fetchAll());
 
+        $this->assertFalse($this->getDb()->insert(array()));
+        $this->assertFalse($this->getDb()->insert(null));
+
         $row = array(
             'id' => 1,
             'artist' => 'Rush',
@@ -224,6 +227,10 @@ class DbTest extends PHPUnit_Framework_TestCase
         unset($row['deleted']);
         $this->assertEquals($row, $this->getDb()->getLastUpdateSet(), 'Os dados diferentes foram os alterados?');
         $this->assertEquals(array('title'=>array($row2['title'], $row['title'])), $this->getDb()->getLastUpdateDiff(), 'As alterações foram detectadas corretamente?');
+
+        $this->assertFalse($this->getDb()->update(array(), 2));
+        $this->assertFalse($this->getDb()->update(null, 2));
+
     }
 
     /**
