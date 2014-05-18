@@ -365,7 +365,7 @@ class Base
 
         // Verifica se deve usar o Paginator
         if ($this->getUsePaginator()) {
-            die('ainda não implemtado');
+            die('ainda não implementado');
             /* $fetchAll = new Zend_Paginator(new Zend_Paginator_Adapter_DbSelect($select));
 
             // Verifica se deve usar o cache

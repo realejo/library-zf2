@@ -28,7 +28,7 @@ class DbTest extends PHPUnit_Framework_TestCase
      *
      * @var Zend\Db\Adapter\Adapter
      */
-    protected $pdoAdapter = null;
+    protected $adapter = null;
 
     /**
      *
@@ -40,15 +40,21 @@ class DbTest extends PHPUnit_Framework_TestCase
      *
      * @return \Zend\Db\Adapter\Adapter
      */
-    public function getPdoAdapter()
+    public function getMysqlAdapter()
     {
-        if ($this->pdoAdapter === null) {
-            $this->pdoAdapter = new \Zend\Db\Adapter\Adapter(array(
-                'driver' => 'Pdo_Sqlite',
-                'database' => realpath(__DIR__ . '/../../assets') . '/sqlite.db'
+        if ($this->adapter === null) {
+            $this->adapter = new \Zend\Db\Adapter\Adapter(array(
+                    'driver' => 'Mysqli',
+                    'hostname' => '192.168.2.23',
+                    'database' => 'testing',
+                    'username' => 'root',
+                    'password' => 'naodigo',
+                    'options' => array(
+                        'buffer_results' => true
+                    )
             ));
         }
-        return $this->pdoAdapter;
+        return $this->adapter;
     }
 
     /**
@@ -57,16 +63,18 @@ class DbTest extends PHPUnit_Framework_TestCase
      */
     public function createTable()
     {
-        $conn = $this->getPdoAdapter();
-        $conn->query("
-            CREATE TABLE {$this->tableName} (
-            {$this->tableKeyName} INTEGER PRIMARY KEY ASC,
-            artist varchar(100) NOT NULL,
-            title varchar(100) NOT NULL,
-            deleted INTEGER UNSIGNED NOT NULL DEFAULT 0
-            );", Adapter::QUERY_MODE_EXECUTE);
+        $this->getMysqlAdapter()
+             ->query("
+                 CREATE TABLE IF NOT EXISTS `{$this->tableName}`  (
+                  `{$this->tableKeyName}` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                  `artist` varchar(100) NOT NULL,
+                  `title` varchar(100) NOT NULL,
+                  `deleted` tinyint(1) unsigned NOT NULL default '0',
+                  PRIMARY KEY  (`{$this->tableKeyName}`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
+            Adapter::QUERY_MODE_EXECUTE);
 
-            return $this;
+        return $this;
     }
 
     /**
@@ -75,7 +83,7 @@ class DbTest extends PHPUnit_Framework_TestCase
      */
     public function dropTable()
     {
-        $this->getPdoAdapter()->query("DROP TABLE IF EXISTS {$this->tableName}", Adapter::QUERY_MODE_EXECUTE);
+        $this->getMysqlAdapter()->query("DROP TABLE IF EXISTS {$this->tableName}", Adapter::QUERY_MODE_EXECUTE);
         return $this;
     }
 
@@ -113,7 +121,7 @@ class DbTest extends PHPUnit_Framework_TestCase
     public function getDb($reset = false)
     {
         if ($this->Db === null || $reset === true) {
-            $this->Db = new Db($this->tableName, $this->tableKeyName, $this->getPdoAdapter());
+            $this->Db = new Db($this->tableName, $this->tableKeyName, $this->getMysqlAdapter());
         }
         return $this->Db;
     }
@@ -137,43 +145,69 @@ class DbTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Verifica se tudo foi criado corretamente no MySQL
+     */
+    public function testSetupMysql()
+    {
+        $this->setup();
+        $this->assertTrue(true);
+    }
+
+
+    /**
      * Tests Db->insert()
      */
     public function testInsert()
     {
         // Certifica que a tabela está vazia
-        $this->assertNull($this->getDb()->fetchAll());
+        $this->assertNull($this->getDb()->fetchAll(), 'Verifica se há algum registro pregravado');
 
-        $this->assertFalse($this->getDb()->insert(array()));
-        $this->assertFalse($this->getDb()->insert(null));
+        $this->assertFalse($this->getDb()->insert(array()), 'Verifica inclusão inválida 1');
+        $this->assertFalse($this->getDb()->insert(null), 'Verifica inclusão inválida 2');
 
         $row = array(
-            'id' => 1,
-            'artist' => 'Rush',
-            'title' => 'Rush',
-            'deleted' => 0
+                'artist' => 'Rush',
+                'title' => 'Rush',
+                'deleted' => '0'
         );
 
-        $this->getDb()->insert($row);
+        $id = $this->getDb()->insert($row);
+        $this->assertEquals(1, $id, 'Verifica a chave criada=1');
 
-        $this->assertNotNull($this->getDb()->fetchAll());
-        $this->assertCount(1, $this->getDb()->fetchAll());
-        $this->assertEquals(array($row), $this->getDb()->fetchAll());
-        $this->assertEquals($row, $this->getDb()->fetchRow(1));
+        $this->assertNotNull($this->getDb()->fetchAll(), 'Verifica o fetchAll não vazio');
+        $this->assertEquals($row, $this->getDb()->getLastInsertSet(), 'Verifica o set do ultimo insert');
+        $this->assertCount(1, $this->getDb()->fetchAll(), 'Verifica se apenas um registro foi adicionado');
+
+        $row = array_merge(array('id'=>$id), $row);
+
+        $this->assertEquals(array($row), $this->getDb()->fetchAll(), 'Verifica se o registro adicionado corresponde ao original pelo fetchAll');
+        $this->assertEquals($row, $this->getDb()->fetchRow(1), 'Verifica se o registro adicionado corresponde ao original pelo fetchRow');
+
+        $row = array(
+                'id' => 2,
+                'artist' => 'Rush',
+                'title' => 'Test For Echos',
+                'deleted' => '0'
+        );
+
+        $id = $this->getDb()->insert($row);
+        $this->assertEquals(2, $id, 'Verifica a chave criada=2');
+
+        $this->assertCount(2, $this->getDb()->fetchAll(), 'Verifica que há DOIS registro');
+        $this->assertEquals(array($row), $this->getDb()->fetchAll(), 'Verifica se o SEGUNDO registro adicionado corresponde ao original pelo fetchAll');
+        $this->assertEquals($row, $this->getDb()->fetchRow(2), 'Verifica se o SEGUNDO registro adicionado corresponde ao original pelo fetchAll');
         $this->assertEquals($row, $this->getDb()->getLastInsertSet());
 
         $row = array(
-            'id' => 2,
-            'artist' => 'Rush',
-            'title' => 'Moving Pictures',
-            'deleted' => 0
+                'artist' => 'Rush',
+                'title' => 'Moving Pictures',
+                'deleted' => '0'
         );
+        $id = $this->getDb()->insert($row);
+        $this->assertEquals(3, $id);
 
-        $this->getDb()->insert($row);
-
-        $this->assertNotNull($this->getDb()->fetchAll());
-        $this->assertCount(2, $this->getDb()->fetchAll());
-        $this->assertEquals($row, $this->getDb()->fetchRow(2));
+        $this->assertCount(3, $this->getDb()->fetchAll());
+        $this->assertEquals($row, $this->getDb()->fetchRow(3));
         $this->assertEquals($row, $this->getDb()->getLastInsertSet());
     }
 
