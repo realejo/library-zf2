@@ -40,9 +40,11 @@ class Db extends Base
 
         // Remove os campos vazios
         foreach ($set as $field => $value) {
-            $set[$field] = trim($value);
-            if ($set[$field] === '') {
-                $set[$field] = null;
+            if (is_string($value)) {
+                $set[$field] = trim($value);
+                if ($set[$field] === '') {
+                    $set[$field] = null;
+                }
             }
         }
 
@@ -97,9 +99,11 @@ class Db extends Base
 
         // Remove os campos vazios
         foreach ($set as $field => $value) {
-            $set[$field] = trim($value);
-            if ($set[$field] === '') {
-                $set[$field] = null;
+            if (is_string($value)) {
+                $set[$field] = trim($value);
+                if ($set[$field] === '') {
+                    $set[$field] = null;
+                }
             }
         }
 

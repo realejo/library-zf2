@@ -210,6 +210,10 @@ class DbTest extends PHPUnit_Framework_TestCase
 
         $this->assertCount(3, $this->getDb()->fetchAll());
         $this->assertEquals($row, $this->getDb()->fetchRow(3), 'Verifica se o TERCEIRO registro adicionado corresponde ao original pelo fetchRow()');
+
+        // Teste com \Zend\Db\Sql\Expression
+        $id = $this->getDb()->insert(array('title'=>new \Zend\Db\Sql\Expression('now()')));
+        $this->assertEquals(4, $id);
     }
 
     /**
