@@ -1,5 +1,16 @@
 ﻿language: php
+
 php:
-  - "5.5"
-  - "5.4"
-  - "5.3"
+  - 5.5
+  - 5.4
+  - 5.3
+
+install:
+	- composer install
+	
+script: phpunit --configuration ./tests/phpunit.travis.xml
+
+branches:
+  only:
+    - develop
+    - master
