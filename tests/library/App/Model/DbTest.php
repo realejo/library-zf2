@@ -40,7 +40,7 @@ class DbTest extends PHPUnit_Framework_TestCase
      *
      * @return \Zend\Db\Adapter\Adapter
      */
-    public function getMysqlAdapter()
+    public function getAdapter()
     {
         if ($this->adapter === null) {
             $this->adapter = new \Zend\Db\Adapter\Adapter(array(
@@ -63,7 +63,7 @@ class DbTest extends PHPUnit_Framework_TestCase
      */
     public function createTable()
     {
-        $this->getMysqlAdapter()
+        $this->getAdapter()
              ->query("
                  CREATE TABLE IF NOT EXISTS `{$this->tableName}`  (
                   `{$this->tableKeyName}` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -83,7 +83,7 @@ class DbTest extends PHPUnit_Framework_TestCase
      */
     public function dropTable()
     {
-        $this->getMysqlAdapter()->query("DROP TABLE IF EXISTS {$this->tableName}", Adapter::QUERY_MODE_EXECUTE);
+        $this->getAdapter()->query("DROP TABLE IF EXISTS {$this->tableName}", Adapter::QUERY_MODE_EXECUTE);
         return $this;
     }
 
@@ -121,7 +121,7 @@ class DbTest extends PHPUnit_Framework_TestCase
     public function getDb($reset = false)
     {
         if ($this->Db === null || $reset === true) {
-            $this->Db = new Db($this->tableName, $this->tableKeyName, $this->getMysqlAdapter());
+            $this->Db = new Db($this->tableName, $this->tableKeyName, $this->getAdapter());
         }
         return $this->Db;
     }
@@ -152,7 +152,6 @@ class DbTest extends PHPUnit_Framework_TestCase
         $this->setup();
         $this->assertTrue(true);
     }
-
 
     /**
      * Tests Db->insert()
