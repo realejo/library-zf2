@@ -1,0 +1,17 @@
+#  Um comentario pra ver se o travis consegue achar o php
+language: php
+
+php:
+  - 5.5
+  - 5.4
+  - 5.3
+
+before_script:
+  - composer install
+    
+script: phpunit --configuration ./tests/phpunit.travis.xml
+
+branches:
+  only:
+    - develop
+    - master
