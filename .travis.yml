@@ -14,4 +14,3 @@ script: phpunit --configuration ./tests/phpunit.travis.xml
 branches:
   only:
     - develop
-    - master
