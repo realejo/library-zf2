@@ -1,4 +1,5 @@
-﻿language: php
+﻿#  Um comentario pra ver se o travis consegue achar o php
+language: php
 
 php:
   - 5.5
