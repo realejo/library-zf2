@@ -10,8 +10,17 @@
  */
 namespace Realejo\App\Model;
 
+use Zend\Cache\StorageFactory;
+
 class Cache
 {
+
+    /**
+     *
+     * @var Zend\Cache\StorageFactory
+     */
+    private $_cache;
+
      /**
       * Configura o cache
       *
@@ -20,11 +29,27 @@ class Cache
      static public function getFrontend($class = '')
      {
          // Configura o cache
-         $frontendOptions = array( 'automatic_serialization' => true, 'lifetime' => 86400 ); // 60*60*24
-         $backendOptions  = array( 'cache_dir' => self::getCachePath($class) );
-         $cache = Zend_Cache::factory( 'Core', 'File', $frontendOptions, $backendOptions );
+         $this->_cache = StorageFactory::factory(array(
+                         'adapter' => array(
+                                 'name' => 'filesystem',
+                                 'options' => array(
+                                         'cache_dir' => self::getCachePath($class),
+                                         'namespace' => $class
+                                 ),
+                         ),
+                         'plugins' => array(
+                                 // Don't throw exceptions on cache errors
+                                 'exception_handler' => array(
+                                         'throw_exceptions' => false
+                                 ),
+                                 'Serializer'
+                         ),
+                         'options' => array(
+                                 'ttl' => 86400
+                         )
+                 ));
 
-         return $cache;
+         return $this->_cache;
      }
 
      /**
@@ -45,11 +70,20 @@ class Cache
      {
          // Verifica se a pasta de cache existe
          if (defined('APPLICATION_DATA') === false) {
-             throw new Exception('A pasta raiz do data não está definido em APPLICATION_DATA em App_Model_Cache::getCacheRoot()');
+             throw new \Exception('A pasta raiz do data não está definido em APPLICATION_DATA em App_Model_Cache::getCacheRoot()');
+         }
+
+         $cachePath = APPLICATION_DATA . '/cache';
+
+         // Verifica se a pasta do cache existe
+         if (!file_exists($cachePath)) {
+             $oldumask = umask(0);
+             mkdir($cachePath, 0777, true); // or even 01777 so you get the sticky bit set
+             umask($oldumask);
          }
 
          // retorna a pasta raiz do cache
-         return realpath(APPLICATION_DATA . '/cache');
+         return realpath($cachePath);
      }
 
      /**
@@ -73,7 +107,7 @@ class Cache
          }
 
          // Retorna a pasta de cache
-         return $cachePath;
+         return realpath($cachePath);
      }
 
      /**
