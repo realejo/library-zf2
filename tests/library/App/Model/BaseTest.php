@@ -5,7 +5,8 @@
  * @author     Realejo
  * @copyright  Copyright (c) 2014 Realejo Design Ltda. (http://www.realejo.com.br)
  */
-use Realejo\App\Model\Base, Zend\Db\Adapter\Adapter;
+use Realejo\App\Model\Base, Zend\Db\Adapter\Adapter, \Zend\Db\Sql\Expression;
+
 
 /**
  * Base test case.
@@ -30,6 +31,12 @@ class BaseTest extends PHPUnit_Framework_TestCase
      * @var Base
      */
     private $Base;
+
+    /**
+     *
+     * @var string
+     */
+    protected $dataPath = '/../../../assets/data';
 
     /**
      *
@@ -159,6 +166,19 @@ class BaseTest extends PHPUnit_Framework_TestCase
             $this->Base = new Base($this->tableName, $this->tableKeyName, $this->getPdoAdapter());
         }
         return $this->Base;
+    }
+
+    /**
+     * setAPPLICATION_DATA define o APPLICATION_DATA se não existir
+     *
+     * @return string
+     */
+    public function setAPPLICATION_DATA()
+    {
+        // Verifica se a pasta de cache existe
+        if (defined('APPLICATION_DATA') === false) {
+            define('APPLICATION_DATA', $this->dataPath);
+        }
     }
 
     /**
@@ -363,6 +383,56 @@ class BaseTest extends PHPUnit_Framework_TestCase
         // Verifica o where
         $this->assertCount(2, $this->getBase()->fetchAll(array('artist'=>$albuns[0]['artist'])));
         $this->assertNull($this->getBase()->fetchAll(array('artist'=>$this->defaultValues[3]['artist'])));
+
+        // Verifica o paginator com o padrão
+        $paginator = $this->getBase()->setUsePaginator(true)->fetchAll();
+        $paginator = $paginator->toJson();
+        $fetchAll = $this->getBase()->setUsePaginator(false)->fetchAll();
+        $this->assertNotEquals(json_encode($this->defaultValues), $paginator);
+        $this->assertEquals(json_encode($fetchAll), $paginator);
+
+        // Verifica o paginator alterando o paginator
+        $this->getBase()->getPaginator()->setPageRange(2)
+                                        ->setCurrentPageNumber(1)
+                                        ->setItemCountPerPage(2);
+        $paginator = $this->getBase()->setUsePaginator(true)->fetchAll();
+        $paginator = $paginator->toJson();
+        $this->assertNotEquals(json_encode($this->defaultValues), $paginator);
+        $fetchAll = $this->getBase()->setUsePaginator(false)->fetchAll(null, null, 2);
+        $this->assertEquals(json_encode($fetchAll), $paginator);
+
+        $this->setAPPLICATION_DATA();
+
+        // Apaga qualquer cache
+        $this->assertTrue($this->getBase()->getCache()->flush(), 'apaga o cache');
+
+        // Define exibir os delatados
+        $this->getBase()->setShowDeleted(true);
+
+        // Liga o cache
+        $this->getBase()->setUseCache(true);
+        $this->assertEquals($this->defaultValues, $this->getBase()->fetchAll(), 'Igual');
+        $this->assertCount(4, $this->getBase()->fetchAll(), 'Deve conter 4 registros 1');
+
+        // Grava um registro "sem o cache saber"
+        $this->getBase()->getTableGateway()->insert(array('id'=>10, 'artist'=>'nao existo por enquanto', 'title'=>'bla bla', 'deleted' => 0));
+
+        $this->assertCount(4, $this->getBase()->fetchAll(), 'Deve conter 4 registros 2');
+        $this->assertTrue($this->getBase()->getCache()->flush(), 'apaga o cache');
+        $this->assertCount(5, $this->getBase()->fetchAll(), 'Deve conter 5 registros');
+
+        // Define não exibir os deletados
+        $this->getBase()->setShowDeleted(false);
+        $this->assertCount(4, $this->getBase()->fetchAll(), 'Deve conter 4 registros 3');
+
+        // Apaga um registro "sem o cache saber"
+        $this->getBase()->getTableGateway()->delete(array("id"=>10));
+        $this->getBase()->setShowDeleted(true);
+        $this->assertCount(5, $this->getBase()->fetchAll(), 'Deve conter 5 registros');
+        $this->assertTrue($this->getBase()->getCache()->flush(), 'apaga o cache');
+        $this->assertCount(4, $this->getBase()->fetchAll(), 'Deve conter 4 registros 4');
+
+
     }
 
     /**

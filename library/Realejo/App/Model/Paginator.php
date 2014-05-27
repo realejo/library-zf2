@@ -14,9 +14,9 @@ class Paginator
 {
 
     private $_paginator = array(
-        'PageRange' => 10,
+        'PageRange'         => 10,
         'CurrentPageNumber' => 1,
-        'ItemCountPerPage' => 10
+        'ItemCountPerPage'  => 10
     );
 
     public function setPageRange($pageRange)

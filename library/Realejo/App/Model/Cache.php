@@ -24,32 +24,37 @@ class Cache
      /**
       * Configura o cache
       *
-      * @return Zend_Cache_Frontend
+      * @return Zend\Cache\Storage\Adapter\Filesystem
       */
      static public function getFrontend($class = '')
      {
-         // Configura o cache
-         $this->_cache = StorageFactory::factory(array(
-                         'adapter' => array(
+         $oCache = new self();
+
+         $path = self::getCachePath($class);
+         if (!empty($path)) {
+             // Configura o cache
+             $oCache->_cache = StorageFactory::factory(array(
+                             'adapter' => array(
                                  'name' => 'filesystem',
                                  'options' => array(
-                                         'cache_dir' => self::getCachePath($class),
-                                         'namespace' => $class
+                                     'cache_dir' => $path,
+                                     'namespace' => $class
                                  ),
-                         ),
-                         'plugins' => array(
+                             ),
+                             'plugins' => array(
                                  // Don't throw exceptions on cache errors
                                  'exception_handler' => array(
-                                         'throw_exceptions' => false
+                                     'throw_exceptions' => false
                                  ),
                                  'Serializer'
-                         ),
-                         'options' => array(
+                             ),
+                             'options' => array(
                                  'ttl' => 86400
-                         )
-                 ));
+                             )
+                     ));
+         }
 
-         return $this->_cache;
+         return $oCache->_cache;
      }
 
      /**

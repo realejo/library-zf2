@@ -13,6 +13,10 @@ use Realejo\App\Model\Cache, Zend\Db\Adapter\Adapter;
 class CacheTest extends PHPUnit_Framework_TestCase
 {
 
+    /**
+     *
+     * @var string
+     */
     protected $dataPath = '/../../../assets/data';
 
     /**
@@ -37,6 +41,8 @@ class CacheTest extends PHPUnit_Framework_TestCase
     protected function tearDown()
     {
         parent::tearDown();
+
+        // Remove as pastas criadas
         $this->rrmdir($this->dataPath);
     }
 
@@ -86,8 +92,10 @@ class CacheTest extends PHPUnit_Framework_TestCase
     {
         $this->setAPPLICATION_DATA();
 
+        // Recupera a pasta aonde será salva as informações
         $path = Cache::getCacheRoot();
 
+        // Verifica se tere o retorno correto
         $this->assertNotNull($path);
         $this->assertEquals(realpath(APPLICATION_DATA.'/cache'), $path);
         $this->assertTrue(file_exists($path));
@@ -100,12 +108,16 @@ class CacheTest extends PHPUnit_Framework_TestCase
      */
     public function testGetCachePath()
     {
+
+        // Verifica se todas as opções são iguais
         $this->assertEquals(Cache::getCacheRoot(), Cache::getCachePath(null));
         $this->assertEquals(Cache::getCacheRoot(), Cache::getCachePath(''));
         $this->assertEquals(Cache::getCacheRoot(), Cache::getCachePath());
 
+        // Cria ou recupera a pasta album
         $path = Cache::getCachePath('Album');
 
+        // Verifica se foi criada corretamente a pasta
         $this->assertNotNull($path);
         $this->assertEquals(realpath(APPLICATION_DATA.'/cache/album'), $path);
         $this->assertNotEquals(realpath(APPLICATION_DATA.'/cache/Album'), $path);
@@ -113,12 +125,16 @@ class CacheTest extends PHPUnit_Framework_TestCase
         $this->assertTrue(is_dir($path));
         $this->assertTrue(is_writable($path));
 
+        // Apaga a pasta
         $this->rrmdir($path);
 
+        // Verifica se a pasta foi apagada
         $this->assertFalse(file_exists($path));
 
+        // Cria ou recupera a pasta album
         $path = Cache::getCachePath('album');
 
+        // Verifica se foi criada corretamente a pasta
         $this->assertNotNull($path);
         $this->assertEquals(realpath(APPLICATION_DATA.'/cache/album'), $path);
         $this->assertNotEquals(realpath(APPLICATION_DATA.'/cache/Album'), $path);
@@ -126,12 +142,16 @@ class CacheTest extends PHPUnit_Framework_TestCase
         $this->assertTrue(is_dir($path), 'Verifica se a pasta album é uma pasta');
         $this->assertTrue(is_writable($path), 'Verifica se a pasta album tem permissão de escrita');
 
+        // Apaga a pasta
         $this->rrmdir($path);
 
+        // Verifica se a pasta foi apagada
         $this->assertFalse(file_exists($path));
 
+        // Cria ou recupera a pasta
         $path = Cache::getCachePath('album_Teste');
 
+        // Verifica se foi criada corretamente a pasta
         $this->assertNotNull($path);
         $this->assertEquals(realpath(APPLICATION_DATA.'/cache/album/teste'), $path);
         $this->assertNotEquals(realpath(APPLICATION_DATA.'/cache/Album/Teste'), $path);
@@ -139,28 +159,22 @@ class CacheTest extends PHPUnit_Framework_TestCase
         $this->assertTrue(is_dir($path), 'Verifica se a pasta album_Teste é uma pasta');
         $this->assertTrue(is_writable($path), 'Verifica se a pasta album_Teste tem permissão de escrita');
 
+        // Apaga a pasta
         $this->rrmdir($path);
 
+        // Verifica se a pasta foi apagada
         $this->assertFalse(file_exists($path), 'Verifica se a pasta album_Teste foi apagada');
 
+        // Cria ou recupera a pasta
         $path = Cache::getCachePath('album/Teste');
 
+        // Verifica se foi criada corretamente a pasta
         $this->assertNotNull($path, 'Teste se o album/Teste foi criado');
         $this->assertEquals(realpath(APPLICATION_DATA.'/cache/album/teste'), $path);
         $this->assertNotEquals(realpath(APPLICATION_DATA.'/cache/Album/Teste'), $path);
         $this->assertTrue(file_exists($path), 'Verifica se a pasta album/Teste existe');
         $this->assertTrue(is_dir($path), 'Verifica se a pasta album/Teste é uma pasta');
         $this->assertTrue(is_writable($path), 'Verifica se a pasta album/Teste tem permissão de escrita');
-
-    }
-
-    /**
-     * getFrontend sem nome da class
-     */
-    public function testgetFrontendSemClass()
-    {
-        $this->markTestIncomplete('Ainda nao fiz');
-        Cache::getFrontend(null);
     }
 
     /**
@@ -168,9 +182,17 @@ class CacheTest extends PHPUnit_Framework_TestCase
      */
     public function testgetFrontendComClass()
     {
-        $this->markTestIncomplete('Ainda nao fiz');
-        Cache::getFrontend('Album');
+        $cache = Cache::getFrontend('Album');
+        $this->assertInstanceOf('Zend\Cache\Storage\Adapter\Filesystem', $cache);
     }
 
+    /**
+     * getFrontend sem nome da class
+     */
+    public function testgetFrontendSemClass()
+    {
+        $cache = Cache::getFrontend(null);
+        $this->assertInstanceOf('Zend\Cache\Storage\Adapter\Filesystem', $cache);
+    }
 }
 

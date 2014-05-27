@@ -11,6 +11,8 @@ namespace Realejo\App\Model;
 use \Zend\Db\TableGateway\Feature\GlobalAdapterFeature;
 use \Zend\Db\Adapter\AdapterInterface;
 use \Zend\Db\TableGateway\TableGateway;
+use Zend\Paginator\Adapter\DbSelect;
+use Zend\Paginator\Paginator;
 
 class Base
 {
@@ -357,51 +359,72 @@ class Base
      */
     public function fetchAll($where = null, $order = null, $count = null, $offset = null)
     {
-        /**
-         *
-         * @var \Zend\Db\Sql\Select
-         */
-        $select = $this->getSelect($where, $order, $count, $offset);
-
-        // Verifica se deve usar o Paginator
-        if ($this->getUsePaginator()) {
-            die('ainda não implementado');
-            /* $fetchAll = new Zend_Paginator(new Zend_Paginator_Adapter_DbSelect($select));
-
-            // Verifica se deve usar o cache
-            if ($this->getUseCache()) {
-                $fetchAll->setCacheEnabled(true)->setCache($this->getCache());
-            }
-
-            // Configura o paginator
-            $fetchAll->setPageRange($this->getPaginator()->getPageRange());
-            $fetchAll->setCurrentPageNumber($this->getPaginator()->getCurrentPageNumber());
-            $fetchAll->setItemCountPerPage($this->getPaginator()->getItemCountPerPage());
- */
+        // Cria a assinatura da consulta
+        if ($where instanceof \Zend\Db\Sql\Select) {
+            $md5 = md5($where->assemble());
         } else {
-            // Recupera os registros do banco de dados
-            $fetchAll = $this->getTableGateway()->selectWith($select);
-
-            // Verifica se foi localizado algum registro
-            if ( !is_null($fetchAll) && count($fetchAll) > 0 ) {
-                // Passa o $fetch para array para poder incluir campos extras
-                $fetchAll = $fetchAll->toArray();
-
-                // Verifica se deve adicionar campos extras
-                $fetchAll = $this->getFetchAllExtraFields($fetchAll);
-            } else {
-                $fetchAll = null;
-            }
-
-            // Grava a consulta no cache
-            //if ($this->getUseCache()) $this->getCache()->save($fetchAll, $md5);
+            $md5 = md5(var_export($where, true) . var_export($order, true) . var_export($count, true) . var_export($offset, true) . var_export($this->getShowDeleted(), true) . var_export($this->getUseDeleted(), true));
         }
 
-        // Some garbage collection
-        unset($select);
+        // Verifica se tem no cache
+        // o Zend_Paginator precisa do Zend_Paginator_Adapter_DbSelect para acessar o cache
+        if ($this->getUseCache() && !$this->getUsePaginator() && $this->getCache()->hasItem($md5)) {
+            return $this->getCache()->getItem($md5);
 
-        // retorna o resultado da consulta
-        return $fetchAll;
+        } else {
+
+            /**
+             *
+             * @var \Zend\Db\Sql\Select
+             */
+            $select = $this->getSelect($where, $order, $count, $offset);
+
+            // Verifica se deve usar o Paginator
+            if ($this->getUsePaginator()) {
+
+                $paginatorAdapter = new DbSelect(
+                                        // our configured select object
+                                        $select,
+                                        // the adapter to run it against
+                                        $this->getTableGateway()->getAdapter()
+                                    );
+                $fetchAll = new Paginator($paginatorAdapter);
+
+                // Verifica se deve usar o cache
+                if ($this->getUseCache()) {
+                    $fetchAll->setCacheEnabled(true)->setCache($this->getCache());
+                }
+
+                // Configura o paginator
+                $fetchAll->setPageRange($this->getPaginator()->getPageRange());
+                $fetchAll->setCurrentPageNumber($this->getPaginator()->getCurrentPageNumber());
+                $fetchAll->setItemCountPerPage($this->getPaginator()->getItemCountPerPage());
+
+            } else {
+                // Recupera os registros do banco de dados
+                $fetchAll = $this->getTableGateway()->selectWith($select);
+
+                // Verifica se foi localizado algum registro
+                if ( !is_null($fetchAll) && count($fetchAll) > 0 ) {
+                    // Passa o $fetch para array para poder incluir campos extras
+                    $fetchAll = $fetchAll->toArray();
+
+                    // Verifica se deve adicionar campos extras
+                    $fetchAll = $this->getFetchAllExtraFields($fetchAll);
+                } else {
+                    $fetchAll = null;
+                }
+
+                // Grava a consulta no cache
+                if ($this->getUseCache()) $this->getCache()->setItem($md5, $fetchAll);
+            }
+
+            // Some garbage collection
+            unset($select);
+
+            // retorna o resultado da consulta
+            return $fetchAll;
+        }
     }
 
     /**
@@ -578,12 +601,18 @@ class Base
     /**
      * Retorna o frontend para gravar o cache
      *
-     * @return Zend_Cache_Frontend
+     * @return Zend\Cache\Storage\Adapter\Filesystem
      */
     public function getCache()
     {
-        $cache = $this->getLoader()->getModel('App_Model_Cache');
+        if (! isset($this->_cache)) {
+            $this->_cache = new \Realejo\App\Model\Cache();
+        }
+        return $this->_cache->getFrontend(get_class($this));
+        /*
+        $cache = $this->getLoader()->getModel('\App\Model\Cache');
         return $cache->getFrontend(get_class($this));
+        */
     }
 
     /**
