@@ -1,5 +1,5 @@
 {
-    "name": "realejo/zf2-library",
+    "name": "realejo/library-zf2",
     "description": "Biblioteca com models comuns utilizados nos projetos ZF2.",
     "license": "BSD-3-Clause",
     "type": "library",
