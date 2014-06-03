@@ -314,7 +314,9 @@ class Base
         }
 
         // Define o where
-        $select->where($this->getWhere($where));
+        if (!empty($where)) {
+            $select->where($this->getWhere($where));
+        }
 
         return $select;
     }
