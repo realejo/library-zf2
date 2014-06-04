@@ -1,21 +1,17 @@
 {
-    "name": "realejo/library-zf2",
-    "description": "Biblioteca com models comuns utilizados nos projetos ZF2.",
-    "license": "BSD-3-Clause",
-    "type": "library",
-    "keywords": [
-        "framework",
-        "zf2",
-        "realejo"
-    ],
-    "homepage": "http://realejo.com.br",
-    "require": {
-        "php": ">=5.3.3",
-        "zendframework/zendframework": "2.2.*"
-    },
-    "autoload": {
-        "psr-0": {
-            "Realejo\\": "library/"
-        }
+  "name" : "realejo/library-zf2",
+  "description" : "Biblioteca com models comuns utilizados nos projetos ZF2.",
+  "require" : {
+    "php" : ">=5.3.3",
+    "zendframework/zendframework" : "2.3.*"
+  },
+  "keywords" : [ "framework", "zf2", "realejo" ],
+  "autoload" : {
+    "psr-0" : {
+      "Realejo\\" : "library/"
     }
+  },
+  "type" : "library",
+  "license" : "BSD-3-Clause",
+  "homepage" : "http://realejo.com.br"
 }

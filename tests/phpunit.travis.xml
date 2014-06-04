@@ -1,0 +1,10 @@
+<phpunit bootstrap="./Bootstrap.php">
+    <testsuite name="library">
+        <directory>./library</directory>
+    </testsuite>
+    <filter>
+        <whitelist>
+            <directory suffix="Test.php">../library</directory>
+        </whitelist>
+    </filter>
+</phpunit>
