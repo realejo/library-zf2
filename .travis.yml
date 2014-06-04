@@ -1,4 +1,3 @@
-﻿#  Um comentario pra ver se o travis consegue achar o php
 language: php
 
 php:
@@ -8,8 +7,9 @@ php:
 
 before_script:
   - composer install
+  - cd ./tests
     
-script: phpunit --configuration ./tests/phpunit.travis.xml
+script: phpunit --configuration phpunit.travis.xml
 
 branches:
   only:
