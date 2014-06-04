@@ -191,9 +191,7 @@ class Db extends Base
             }
 
             if ($this->fetchRow($dados[$this->key])) {
-                return $this->update($dados, array(
-                    $this->key => $dados[$this->key]
-                ));
+                return $this->update($dados, $dados[$this->key]);
             } else {
                 throw new \Exception("{$this->key} key does not exist");
             }
