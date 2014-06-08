@@ -9,15 +9,14 @@
  */
 namespace Realejo;
 
-use Zend\Loader\AutoloaderFactory;
-use Zend\Mvc\Service\ServiceManagerConfig;
-use Zend\ServiceManager\ServiceManager;
 use RuntimeException;
 
 error_reporting(E_ALL | E_STRICT);
 chdir(__DIR__);
 
 define('APPLICATION_ENV', 'testing');
+define('MYSQL_IP', (isset($_SERVER['COMPUTERNAME']) && $_SERVER['COMPUTERNAME'] == 'RODRIGO') ? '192.168.2.23' : '192.168.100.25');
+
 
 /**
  * Test bootstrap, for setting up autoloading

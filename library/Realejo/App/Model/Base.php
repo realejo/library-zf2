@@ -8,9 +8,9 @@
  */
 namespace Realejo\App\Model;
 
-use \Zend\Db\TableGateway\Feature\GlobalAdapterFeature;
-use \Zend\Db\Adapter\AdapterInterface;
-use \Zend\Db\TableGateway\TableGateway;
+use Zend\Db\TableGateway\Feature\GlobalAdapterFeature;
+use Zend\Db\Adapter\AdapterInterface;
+use Zend\Db\TableGateway\TableGateway;
 use Zend\Paginator\Adapter\DbSelect;
 use Zend\Paginator\Paginator;
 
@@ -147,8 +147,7 @@ class Base
     }
 
     /**
-     *
-     * @return App_Loader
+     * @return \Realejo\App\Loader\Loader
      */
     public function getLoader()
     {
@@ -165,11 +164,15 @@ class Base
     }
 
 	/**
-     *
      * @return TableGateway
      */
     public function getTableGateway()
     {
+        // Verifica se já está carregado
+        if (isset($this->_tableGateway)) {
+            return $this->_tableGateway;
+        }
+
         if (empty($this->table)) {
             throw new \Exception('Tabela não definida em ' . get_class($this) . '::getTable()');
         }

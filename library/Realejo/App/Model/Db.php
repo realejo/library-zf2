@@ -8,6 +8,8 @@
  */
 namespace Realejo\App\Model;
 
+use Realejo\App\Model\Base;
+
 class Db extends Base
 {
 

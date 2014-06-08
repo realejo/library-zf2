@@ -5,17 +5,16 @@
  * @author     Realejo
  * @copyright  Copyright (c) 2014 Realejo Design Ltda. (http://www.realejo.com.br)
  */
-use Realejo\App\Model\Base, Zend\Db\Adapter\Adapter, \Zend\Db\Sql\Expression;
-
+use Realejo\App\Model\Base,
+    Zend\Db\Adapter\Adapter,
+    Zend\Db\Sql\Expression;
 
 /**
  * Base test case.
  */
 class BaseTest extends PHPUnit_Framework_TestCase
 {
-
     /**
-     *
      * @var string
      */
     protected $tableName = "album";
@@ -431,7 +430,6 @@ class BaseTest extends PHPUnit_Framework_TestCase
         $this->assertCount(5, $this->getBase()->fetchAll(), 'Deve conter 5 registros');
         $this->assertTrue($this->getBase()->getCache()->flush(), 'apaga o cache');
         $this->assertCount(4, $this->getBase()->fetchAll(), 'Deve conter 4 registros 4');
-
 
     }
 

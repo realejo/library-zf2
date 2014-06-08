@@ -45,8 +45,8 @@ class DbTest extends PHPUnit_Framework_TestCase
         if ($this->adapter === null) {
             $this->adapter = new \Zend\Db\Adapter\Adapter(array(
                     'driver' => 'Mysqli',
-                    'hostname' => '192.168.2.23',
-                    'database' => 'testing',
+                    'hostname' => MYSQL_IP,
+                    'database' => 'test',
                     'username' => 'root',
                     'password' => 'naodigo',
                     'options' => array(

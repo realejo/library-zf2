@@ -5,7 +5,8 @@
  * @author     Realejo
  * @copyright  Copyright (c) 2014 Realejo Design Ltda. (http://www.realejo.com.br)
  */
-use Realejo\App\Model\Paginator, Zend\Db\Adapter\Adapter;
+use Realejo\App\Model\Paginator,
+    Zend\Db\Adapter\Adapter;
 
 /**
  * Base test case.
