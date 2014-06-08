@@ -2,9 +2,9 @@
 /**
  * Model basico para o App_Model com as funções de create, update e delete
  *
- * @author     Realejo
- * @version    $Id: Base.php 61 2014-04-01 16:26:39Z rodrigo $
- * @copyright  Copyright (c) 2012 Realejo Design Ltda. (http://www.realejo.com.br)
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
 namespace Realejo\App\Model;
 

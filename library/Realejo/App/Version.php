@@ -2,8 +2,9 @@
 /**
  * Classe para armazenar e recuperar a versão da biblioteca da Realejo
  *
- * @author     Realejo
- * @copyright  Copyright (c) 2011-2012 Realejo Design Ltda. (http://www.realejo.com.br)
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
 namespace Realejo\App;
 

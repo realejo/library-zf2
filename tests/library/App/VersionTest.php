@@ -1,6 +1,10 @@
 <?php
 /**
  * Version test case.
+ *
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
 use Realejo\App\Version;
 

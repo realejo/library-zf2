@@ -4,9 +4,9 @@
  *
  * Ele cria automaticamente a pasta de cache, dentro de data/cache, baseado no nome da classe
  *
- * @author     Realejo
- * @version    $Id: Cache.php 54 2014-03-21 17:16:12Z rodrigo $
- * @copyright  Copyright (c) 2012 Realejo Design Ltda. (http://www.realejo.com.br)
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
 namespace Realejo\App\Model;
 

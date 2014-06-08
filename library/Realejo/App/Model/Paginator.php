@@ -5,8 +5,9 @@
  * Ele é usado apenas para guarda a configuração da paginação. O paginator é
  * criado direto na consulta no retorno do fetchAll
  *
- * @author     Realejo
- * @copyright  Copyright (c) 2014 Realejo Design Ltda. (http://www.realejo.com.br)
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
 namespace Realejo\App\Model;
 
