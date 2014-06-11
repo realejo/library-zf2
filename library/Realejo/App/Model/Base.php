@@ -39,14 +39,14 @@ class Base
     /**
      * Não pode ser usado dentro do Loader pois cada classe tem configurações diferentes
      *
-     * @var App_Model_Paginator
+     * @var \Realejo\App\Model\Paginator
      */
     private $_paginator;
 
     /**
      * Não pode ser usado dentro do Loader pois cada classe tem configurações diferentes
      *
-     * @var App_Model_Cache
+     * @var \Zend\Cache\Storage\Adapter\Filesystem
      */
     private $_cache;
 
@@ -608,7 +608,7 @@ class Base
     /**
      * Retorna o frontend para gravar o cache
      *
-     * @return Zend\Cache\Storage\Adapter\Filesystem
+     * @return \Zend\Cache\Storage\Adapter\Filesystem
      */
     public function getCache()
     {
@@ -616,10 +616,6 @@ class Base
             $this->_cache = new \Realejo\App\Model\Cache();
         }
         return $this->_cache->getFrontend(get_class($this));
-        /*
-        $cache = $this->getLoader()->getModel('\App\Model\Cache');
-        return $cache->getFrontend(get_class($this));
-        */
     }
 
     /**
@@ -654,7 +650,7 @@ class Base
     /**
      * Retorna o frontend para gravar o cache
      *
-     * @return App_Model_Paginator
+     * @return \Realejo\App\Model\Paginator
      */
     public function getPaginator()
     {
