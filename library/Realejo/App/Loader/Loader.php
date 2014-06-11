@@ -16,8 +16,8 @@ class Loader
     private $_models;
 
     /**
-     * Verifica se uma classe já carregada
-     * Se não não estiver carregada, cria ela
+     * Verifica se uma classe já está carregada
+     * Se não não estiver, cria ela
      *
      * @param string $class
      *
@@ -49,11 +49,11 @@ class Loader
      */
     public function setModel($class, $object)
     {
-        $this->_classes[$class] = new $class();
+        $this->_models[$class] = new $class();
 
         // Verifica se existe loader aplicado a classe
-        if (method_exists( $this->_classes[$class] , 'setLoader' )) {
-            $this->_classes[$class]->setLoader($this);
+        if (method_exists( $this->_models[$class] , 'setLoader' )) {
+            $this->_models[$class]->setLoader($this);
         }
 
         // Retorna o loader
@@ -65,10 +65,10 @@ class Loader
      *
      * @param string $class
      *
-     * @return mixed
+     * @return boolean
      */
     public function hasModel($class)
     {
-        return isset($this->_classes[$class]);
+        return isset($this->_models[$class]);
     }
 }
