@@ -13,7 +13,7 @@ class Loader
     /**
      * @var array
      */
-    private $_classes;
+    private $_models;
 
     /**
      * Verifica se uma classe já carregada
@@ -23,20 +23,20 @@ class Loader
      *
      * @return mixed
      */
-    public function getModel($class)
+    public function getModel($model)
     {
         // Verifica se o model já foi previamente carregado
-        if (!isset($this->_classes[$model])) {
-            $this->_classes[$class] = new $class();
+        if (!$this->hasModel($model)) {
+            $this->_models[$model] = new $model();
 
             // Verifica se existe loader aplicado a classe
-            if (method_exists( $this->_classes[$class] , 'setLoader' )) {
-                $this->_classes[$class]->setLoader($this);
+            if (method_exists( $this->_models[$model] , 'setLoader' )) {
+                $this->_models[$model]->setLoader($this);
             }
         }
 
         // Retorna o model
-        return $this->_classes[$class];
+        return $this->_models[$model];
     }
 
     /**

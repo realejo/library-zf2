@@ -109,7 +109,7 @@ class Base
     /**
      * Campos a serem adicionados no <option> como data
      *
-     * @var string array
+     * @var string|array
      */
     protected $htmlSelectOptionData;
 
@@ -536,7 +536,7 @@ class Base
     {
         // Recupera os registros
         $where = (isset($opts['where'])) ? $opts['where'] : null;
-        $fetchAll = $this->fetchAll();
+        $fetchAll = $this->fetchAll($where);
 
         // Verifica o select_option_data
         if (isset($this->htmlSelectOptionData) && is_string($this->htmlSelectOptionData)) {
