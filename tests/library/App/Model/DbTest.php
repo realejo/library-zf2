@@ -48,8 +48,8 @@ class DbTest extends PHPUnit_Framework_TestCase
                     'driver' => 'Mysqli',
                     'hostname' => MYSQL_IP,
                     'database' => 'test',
-                    'username' => 'root',
-                    'password' => 'naodigo',
+                    'username' => MYSQL_USER,
+                    'password' => MYSQL_PASS,
                     'options' => array(
                         'buffer_results' => true
                     )
