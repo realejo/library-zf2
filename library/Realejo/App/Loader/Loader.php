@@ -16,10 +16,10 @@ class Loader
     private $_models;
 
     /**
-     * Verifica se uma classe já está carregada
-     * Se não não estiver, cria ela
+     * Verifica se um model já está carregado
+     * Se não não estiver, cria ele
      *
-     * @param string $class
+     * @param string $model
      *
      * @return mixed
      */
@@ -27,12 +27,17 @@ class Loader
     {
         // Verifica se o model já foi previamente carregado
         if (!$this->hasModel($model)) {
-            $this->_models[$model] = new $model();
 
-            // Verifica se existe loader aplicado a classe
-            if (method_exists( $this->_models[$model] , 'setLoader' )) {
-                $this->_models[$model]->setLoader($this);
+            // Cria o model
+            $object = new $model();
+
+            // Verifica se existe loader aplicado ao model
+            if (method_exists( $object , 'setLoader' )) {
+                $object->setLoader($this);
             }
+
+            // Grava na lista de models já carregados
+            $this->_models[$model] = $object;
         }
 
         // Retorna o model
@@ -40,35 +45,36 @@ class Loader
     }
 
     /**
-     * Grava uma classe dentro do loader
+     * Grava um objeto dentro do loader
      *
-     * @param string $class
+     * @param string $model
      * @param mixed $object
      *
      * @return \Realejo\App\Loader\Loader
      */
-    public function setModel($class, $object)
+    public function setModel($model, $object)
     {
-       // Verifica se existe loader aplicado a classe
+        // Verifica se existe loader aplicado ao model
         if (method_exists( $object , 'setLoader' )) {
             $object->setLoader($this);
         }
 
-        $this->_models[$class] = $object;
+        // Grava na lista de models já carregados
+        $this->_models[$model] = $object;
 
         // Retorna o loader
         return $this;
     }
 
     /**
-     * Retorna se a classe já está carregada
+     * Retorna se o model já está carregado
      *
-     * @param string $class
+     * @param string $model
      *
      * @return boolean
      */
-    public function hasModel($class)
+    public function hasModel($model)
     {
-        return isset($this->_models[$class]);
+        return isset($this->_models[$model]);
     }
 }
