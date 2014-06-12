@@ -49,12 +49,12 @@ class Loader
      */
     public function setModel($class, $object)
     {
-        $this->_models[$class] = new $class();
-
-        // Verifica se existe loader aplicado a classe
-        if (method_exists( $this->_models[$class] , 'setLoader' )) {
-            $this->_models[$class]->setLoader($this);
+       // Verifica se existe loader aplicado a classe
+        if (method_exists( $object , 'setLoader' )) {
+            $object->setLoader($this);
         }
+
+        $this->_models[$class] = $object;
 
         // Retorna o loader
         return $this;
