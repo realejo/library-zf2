@@ -5,7 +5,11 @@
     "php" : ">=5.3.3",
     "zendframework/zendframework" : "2.3.*"
   },
-  "keywords" : [ "framework", "zf2", "realejo" ],
+  "keywords": [
+        "framework",
+        "zf1",
+        "realejo"
+    ],
   "autoload" : {
     "psr-0" : {
       "Realejo\\" : "library/"
