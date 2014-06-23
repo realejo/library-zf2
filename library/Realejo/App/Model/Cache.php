@@ -102,7 +102,7 @@ class Cache
      static public function getCachePath($class = '')
      {
          // Define a pasta de cache
-         $cachePath = self::getCacheRoot() . '/' . str_replace('_', '/', strtolower($class));
+         $cachePath = self::getCacheRoot() . '/' . str_replace(array('_', '\\'), '/', strtolower($class));
 
          // Verifica se a pasta do cache existe
          if (!file_exists($cachePath)) {
