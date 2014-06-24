@@ -3,7 +3,7 @@
   "description" : "Biblioteca com models comuns utilizados nos projetos ZF2.",
   "require" : {
     "php" : ">=5.3.3",
-    "zendframework/zendframework" : "2.3.*"
+    "zendframework/zendframework" : "2.2.*"
   },
   "keywords": [
         "framework",
