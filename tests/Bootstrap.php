@@ -14,13 +14,6 @@ error_reporting(E_ALL | E_STRICT);
 chdir(__DIR__);
 
 define('APPLICATION_ENV', 'testing');
-// Verifica a configuração do travis
-if (!defined('MYSQL_IP')) {
-    define('MYSQL_IP', (isset($_SERVER['COMPUTERNAME']) && $_SERVER['COMPUTERNAME'] == 'RODRIGO') ? '192.168.2.23' : '192.168.100.25');
-    define('MYSQL_USER', 'root');
-    define('MYSQL_PASS', 'naodigo');
-}
-
 define('TEST_ROOT', __DIR__);
 define('APPLICATION_DATA', TEST_ROOT . '/assets/_files/data');
 
