@@ -83,7 +83,7 @@ class Cache
          // Verifica se a pasta do cache existe
          if (!file_exists($cachePath)) {
              $oldumask = umask(0);
-             mkdir($cachePath, 0777, true); // or even 01777 so you get the sticky bit set
+             mkdir($cachePath, 0777, true);
              umask($oldumask);
          }
 
@@ -107,7 +107,7 @@ class Cache
          // Verifica se a pasta do cache existe
          if (!file_exists($cachePath)) {
              $oldumask = umask(0);
-             mkdir($cachePath, 0777, true); // or even 01777 so you get the sticky bit set
+             mkdir($cachePath, 0777, true);
              umask($oldumask);
          }
 

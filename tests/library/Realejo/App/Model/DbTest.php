@@ -8,9 +8,6 @@
  */
 use Realejo\App\Model\Db;
 
-/**
- * Db test case.
- */
 class DbTest extends BaseTestCase
 {
 
@@ -27,7 +24,7 @@ class DbTest extends BaseTestCase
      */
     public function truncateTable()
     {
-        $this->dropTable()->createTable();
+        $this->dropTables()->createTables();
         return $this;
     }
 
@@ -38,7 +35,7 @@ class DbTest extends BaseTestCase
     protected function setUp()
     {
         parent::setUp();
-        $this->dropTable()->createTable();
+        $this->dropTables()->createTables();
     }
 
     /**
@@ -47,7 +44,7 @@ class DbTest extends BaseTestCase
     protected function tearDown()
     {
         parent::tearDown();
-        $this->dropTable();
+        $this->dropTables();
     }
     /**
      * @return Db
@@ -55,7 +52,7 @@ class DbTest extends BaseTestCase
     public function getDb($reset = false)
     {
         if ($this->Db === null || $reset === true) {
-            $this->Db = new Db('album', 'id_album', $this->getAdapter());
+            $this->Db = new Db('album', 'id', $this->getAdapter());
         }
         return $this->Db;
     }
@@ -66,7 +63,7 @@ class DbTest extends BaseTestCase
      */
     public function testConstructSemTableName()
     {
-        new Db(null, $this->tableKeyName);
+        new Db(null, 'keyname');
     }
 
     /**
@@ -75,7 +72,7 @@ class DbTest extends BaseTestCase
      */
     public function testConstructSemKeyName()
     {
-        new Db($this->tableName, null);
+        new Db('tablename', null);
     }
 
     /**

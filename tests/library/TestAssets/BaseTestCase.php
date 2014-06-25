@@ -109,7 +109,7 @@ class BaseTestCase extends PHPUnit_Framework_TestCase
         }
 
         // Apaga todo o conteudo dele
-        $this->_rrmdir(APPLICATION_DATA);
+        $this->rrmdir(APPLICATION_DATA);
 
         return $this->isApplicationDataEmpty();
     }
@@ -129,14 +129,14 @@ class BaseTestCase extends PHPUnit_Framework_TestCase
         return (count(scandir(APPLICATION_DATA)) == 3);
     }
 
-    private function _rrmdir($dir)
+    public function rrmdir($dir)
     {
         if (is_dir($dir)) {
             $objects = scandir($dir);
             foreach ($objects as $object) {
                 if ($object != "." && $object != ".." && $object != ".gitignore") {
                     if (filetype($dir . "/" . $object) == "dir") {
-                        $this->_rrmdir($dir . "/" . $object);
+                        $this->rrmdir($dir . "/" . $object);
                     } else {
                         unlink($dir . "/" . $object);
                     }
