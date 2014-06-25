@@ -351,7 +351,7 @@ class Base
      */
     public function getSQlString($where = null, $order = null, $count = null, $offset = null)
     {
-        return $this->getSelect($where, $order, $count, $offset)->getSqlString();
+        return $this->getSelect($where, $order, $count, $offset)->getSqlString($this->getTableGateway()->getAdapter()->getPlatform());
     }
 
     /**
