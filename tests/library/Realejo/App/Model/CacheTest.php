@@ -6,20 +6,13 @@
  * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
  * @license   http://unlicense.org
  */
-use Realejo\App\Model\Cache,
-    Zend\Db\Adapter\Adapter;
+use Realejo\App\Model\Cache;
 
 /**
  * Base test case.
  */
-class CacheTest extends PHPUnit_Framework_TestCase
+class CacheTest extends BaseTestCase
 {
-
-    /**
-     *
-     * @var string
-     */
-    protected $dataPath = '/../../../assets/data';
 
     /**
      * Prepares the environment before running a test.
