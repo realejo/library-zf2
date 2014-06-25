@@ -21,6 +21,11 @@ if (!defined('MYSQL_IP')) {
     define('MYSQL_PASS', 'naodigo');
 }
 
+define('TEST_ROOT', __DIR__);
+define('APPLICATION_DATA', TEST_ROOT . '/assets/_files/data');
+
+include "library/TestAssets/BaseTestCase.php";
+
 /**
  * Test bootstrap, for setting up autoloading
  */
