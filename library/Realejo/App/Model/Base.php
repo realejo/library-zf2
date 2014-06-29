@@ -225,7 +225,8 @@ class Base
             foreach ($where as $id => $w) {
 
                 // Checks $where is not string
-                if ($w instanceof \Zend\Db\Sql\Expression) {
+                //@todo deveria ser Expression ou PredicateInterface
+                if ($w instanceof \Zend\Db\Sql\Expression || $w instanceof \Zend\Db\Sql\Predicate\PredicateInterface) {
                     $this->where[] = $w;
 
                 // Checks is deleted
@@ -241,10 +242,11 @@ class Base
                 } elseif ($id === 'ativo' && $w === false) {
                     $this->where[] = "{$this->getTableGateway()->getTable()}.ativo=0";
 
-                    // Checks $id is not numeric and $w is numeric
+                // Checks $id is not numeric and $w is numeric
                 } elseif (! is_numeric($id) && is_numeric($w)) {
-                    if (strpos($id, '.') === false)
+                    if (strpos($id, '.') === false) {
                         $id = $this->getTableGateway()->getTable() . ".$id";
+                    }
                     $this->where[] = "$id=$w";
 
                 /**
@@ -256,10 +258,11 @@ class Base
                  * }
                  */
 
-                    // Checks $id is not numeric and $w is string
+                // Checks $id is not numeric and $w is string
                 } elseif (! is_numeric($id) && is_string($id)) {
-                    if (strpos($id, '.') === false)
+                    if (strpos($id, '.') === false) {
                         $id = $this->getTableGateway()->getTable() . ".$id";
+                    }
                     $this->where[] = "$id='$w'";
 
                 /**
@@ -271,7 +274,7 @@ class Base
                  * }
                  */
 
-                    // Return $id is not numeric and $w is string
+                // Return $id is not numeric and $w is string
                 } else {
                     throw new \Exception('Condição inválida em TableAdapter::getWhere()');
                 }
