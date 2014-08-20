@@ -371,7 +371,7 @@ class Base
     {
         // Cria a assinatura da consulta
         if ($where instanceof \Zend\Db\Sql\Select) {
-            $md5 = md5($where->assemble());
+            $md5 = md5($where->getSqlString());
         } else {
             $md5 = md5(var_export($where, true) . var_export($order, true) . var_export($count, true) . var_export($offset, true) . var_export($this->getShowDeleted(), true) . var_export($this->getUseDeleted(), true));
         }
