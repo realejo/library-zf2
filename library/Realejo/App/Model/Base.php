@@ -474,11 +474,14 @@ class Base
     public function fetchAssoc($where = null, $order = null, $count = null, $offset = null)
     {
         $rowset = $this->fetchAll($where, $order, $count, $offset);
-        $return = array();
-        foreach ($rowset as $row) {
-            $return[$row[$this->key]] = $row;
+        if (empty($rowset)) {
+        	return null;
+        }        	
+       	$return = array();
+      	foreach ($rowset as $row) {
+	        $return[$row[$this->key]] = $row;
         }
-
+        
         return $return;
     }
 
