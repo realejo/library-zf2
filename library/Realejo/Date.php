@@ -67,7 +67,7 @@ class Date extends \DateTime
      * @param string $part
      * @return int
      */
-    static function diff(Zend_Date $d1, Zend_Date $d2, $part = null)
+    static function staticDiff(Zend_Date $d1, Zend_Date $d2, $part = null)
     {
         if ( $d1 instanceof Zend_Date)
             $d1 = $d1->get(Zend_Date::TIMESTAMP);
@@ -110,7 +110,7 @@ class Date extends \DateTime
         if ($part === 'Q') {
             $objDateTime = new \DateTime();
 
-            $q = $objDateTime->format("M");
+            $q = $objDateTime->format("m");
 
             return ceil ($q / 3);
         } else {
