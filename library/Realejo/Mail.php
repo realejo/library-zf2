@@ -61,12 +61,12 @@ class Mail
         $marca = (defined('MARCA')) ? '.' . BFFC_Marca::getCssClass(MARCA) : '';
 
         // Carrega as configurações do config
-        $configpath = APPLICATION_PATH . "/../configs/application$marca.ini";
+        $configpath = APPLICATION_ROOT . "/../configs/application$marca.ini";
         if (! file_exists($configpath)) {
             // procura dentro do application
-            $configpath = APPLICATION_PATH . "/configs/application$marca.ini";
+            $configpath = APPLICATION_ROOT . "/configs/application$marca.ini";
             if (! file_exists($configpath)) {
-                throw new Exception("Arquivo de configuração application$marca.ini não encontrado do diretório /configs");
+                throw new \Exception("Arquivo de configuração application$marca.ini não encontrado do diretório /configs");
             }
         }
         $config = new Zend_Config_Ini($configpath, APPLICATION_ENV);
@@ -126,7 +126,7 @@ class Mail
                 // Configura o transport
             $transport = new Zend_Mail_Transport_Smtp($config->cms->email->smtp->host, $serverconfig);
         } else {
-            throw new Exception('Tipo de envio <b>' . $this->_type . '</b> não definido em RW_Mail');
+            throw new \Exception('Tipo de envio <b>' . $this->_type . '</b> não definido em RW_Mail');
         }
 
         Zend_Mail::setDefaultTransport($transport);
@@ -144,7 +144,7 @@ class Mail
 
         // Verifica o email do destinatário
         if ($toEmail == '' || is_null($toEmail)) {
-            throw new Exception('Não há email de destino definido em RW_Mail');
+            throw new \Exception('Não há email de destino definido em RW_Mail');
         }
 
         // Verifica o nome do destinatário
@@ -314,14 +314,14 @@ class Mail
      */
     public function sendFeedback($post, $configfile)
     {
-        $configpath = realpath(APPLICATION_PATH . "/../configs/feedback.$configfile.ini");
+        $configpath = realpath(APPLICATION_ROOT . "/../configs/feedback.$configfile.ini");
         if (! file_exists($configpath)) {
             // Tenta outro diretório
-            $configpath = realpath(APPLICATION_PATH . "/configs/feedback.$configfile.ini");
+            $configpath = realpath(APPLICATION_ROOT . "/configs/feedback.$configfile.ini");
         }
 
         if (! file_exists($configpath)) {
-            throw new Exception("Arquivo de configuração '$configfile' não encontrado do diretório /configs");
+            throw new \Exception("Arquivo de configuração '$configfile' não encontrado do diretório /configs");
         }
 
         $config = new Zend_Config_Ini($configpath, APPLICATION_ENV);
@@ -360,7 +360,7 @@ class Mail
         // Verifica se vai usar um modelo
         if (isset($config['modelo'])) {
             $view = new Zend_View();
-            $view->setScriptPath(APPLICATION_PATH . '/views/scripts');
+            $view->setScriptPath(APPLICATION_ROOT . '/views/scripts');
             $html = $emailCliente = $view->partial('/_modelos/feedback/' . $config['modelo'] . '.phtml', array(
                 'valores' => $post,
                 'config' => $config
