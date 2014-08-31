@@ -113,6 +113,14 @@ class Base
      */
     protected $htmlSelectOptionData;
 
+    /**
+     * Se o nome da tabela e a chave não estiverem hardcoded é preciso informar
+     *
+     * @param string $table     OPCIONAL. Nome da tabela
+     * @param string $key       OPCIONAL. Chave da tabela
+     * @param string $dbAdapter OPCIONAL .Adapter a ser usado. Se não informado será usado o padrão
+     * @throws \Exception
+     */
     public function __construct($table = null, $key = null, $dbAdapter = null)
     {
         // Verifica o nome da tabela
@@ -164,7 +172,7 @@ class Base
         $this->_loader = $loader;
     }
 
-	/**
+    /**
      * @return TableGateway
      */
     public function getTableGateway()
@@ -475,13 +483,13 @@ class Base
     {
         $rowset = $this->fetchAll($where, $order, $count, $offset);
         if (empty($rowset)) {
-        	return null;
-        }        	
-       	$return = array();
-      	foreach ($rowset as $row) {
-	        $return[$row[$this->key]] = $row;
+            return null;
         }
-        
+           $return = array();
+          foreach ($rowset as $row) {
+            $return[$row[$this->key]] = $row;
+        }
+
         return $return;
     }
 
