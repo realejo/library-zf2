@@ -52,7 +52,7 @@ class Mptt extends Db
      */
     protected function _initTraversal()
     {
-        if (empty($this->_traversal) || $this->_isTraversable) return;
+        if (empty($this->_traversal)) return;
 
         $columns = $this->getColumns();
 
@@ -76,15 +76,11 @@ class Mptt extends Db
 
         // Check for identifying column
         if (!isset($this->_traversal['column'])) {
-            if (!isset($this->key)) {
-                throw new \Exception("Unable to determine primary key for tree traversal");
-            }
+            $this->_traversal['column'] = $this->getKey();
+        }
 
-            if (is_array($this->key)) {
-                throw new \Exception("Cannot use compound primary key as identifying column for tree traversal, please specify the column manually");
-            }
-
-            $this->_traversal['column'] = $this->key;
+        if (!in_array($this->_traversal['column'], $columns)) {
+            throw new \Exception("Column '" . $this->_traversal['column'] . "' not found in table for tree traversal");
         }
 
         // Check for reference column
@@ -94,6 +90,15 @@ class Mptt extends Db
 
         if (!in_array($this->_traversal['refColumn'], $columns)) {
             throw new \Exception("Column '" . $this->_traversal['refColumn'] . "' not found in table for tree traversal");
+        }
+
+        // Check the order
+        if (!isset($this->_traversal['order'])) {
+            $this->_traversal['order'] = $this->getKey();
+        }
+
+        if (!in_array($this->_traversal['order'], $columns)) {
+            throw new \Exception("Column '" . $this->_traversal['order'] . "' not found in table for tree traversal");
         }
 
         $this->_isTraversable = true;
@@ -128,15 +133,14 @@ class Mptt extends Db
         $select = $this->getTableGateway()
                        ->getSql()->select();
 
-        if ($parentId > 0) {
+        if (!empty($parentId)) {
             $select->where(array($this->_traversal['refColumn'] => $parentId));
         } else {
             $select->where(new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['refColumn']} IS NULL OR {$this->_traversal['refColumn']} = 0"));
         }
 
-        if (array_key_exists('order', $this->_traversal)) {
-            $select->order($this->_traversal['order']);
-        }
+        // Define the order
+        $select->order($this->_traversal['order']);
 
         $rightValue = $leftValue + 1;
 
@@ -145,15 +149,121 @@ class Mptt extends Db
             $rightValue = $this->_rebuildTreeTraversal($row->{$this->_traversal['column']}, $rightValue);
         }
 
-        if ($parentId > 0) {
+        if (!empty($parentId)) {
             $this->getTableGateway()
                  ->update(array(
                      $this->_traversal['left'] => $leftValue,
-                     $this->_traversal['right'] =>  $rightValue
-                 ), array($this->_traversal['column'] =>$parentId));
+                     $this->_traversal['right'] => $rightValue
+                 ), array($this->_traversal['column'] => $parentId));
         }
 
         return $rightValue + 1;
+    }
+
+    /**
+     * Override insert method to include pre-insert hook
+     *
+     * @param mixed $set
+     *
+     * @return primary key
+     */
+    public function insert($set)
+    {
+        return $this->isTraversable() ? $this->_insertTraversable($set) : parent::insert($set);
+    }
+
+    /**
+     * Calculates left and right values for new row and inserts it.
+     * Also adjusts all rows to make room for the new row.
+     *
+     * @param array $set
+     * @return int $id
+     */
+    protected function _insertTraversable($set)
+    {
+        $this->_verifyTraversable();
+
+        // Disable traversable flag to prevent automatic traversable manipulation during updates.
+        $isTraversable = $this->_isTraversable;
+        $this->_isTraversable = false;
+
+        if (array_key_exists($this->_traversal['refColumn'], $set) && $set[$this->_traversal['refColumn']] > 0) {
+            // Find parent
+            $parent_id = $set[$this->_traversal['refColumn']];
+            $parent = $this->getTableGateway()->select(array($this->getKey()=>$parent_id))->current();
+            if (null === $parent) {
+                throw new \Exception("Traversable error: Parent id {$parent_id} not found");
+            }
+
+            $lt = (double) $parent->{$this->_traversal['left']};
+            $rt = (double) $parent->{$this->_traversal['right']};
+
+            // Find siblings
+            $select = $this->getTableGateway()->getSql()->select();
+            $select->where(array($this->_traversal['refColumn']=>$parent_id));
+
+            $siblings = $this->getTableGateway()->selectWith($select);
+
+            // Define the position of the new node
+            // Checks if it has any sibling on the left, considering the defined order
+            $previousSibling = null;
+            foreach($siblings as $s) {
+                if (is_string($s[$this->_traversal['order']])) {
+                    if (strcmp($s[$this->_traversal['order']], $set[$this->_traversal['order']]) > 0) {
+                        break;
+                    }
+
+                } else {
+                    if ($s[$this->_traversal['order']] >= $set[$this->_traversal['order']]) {
+                        break;
+                    }
+                }
+                $previousSibling = $s;
+            }
+
+            // If there is a sibling on the left, use it for positioning
+            if (!empty($previousSibling)) {
+                $lt = (double) $previousSibling->{$this->_traversal['left']};
+                $rt = (double) $previousSibling->{$this->_traversal['right']};
+                $pos = $rt;
+
+                $set[$this->_traversal['left']] = $rt + 1;
+                $set[$this->_traversal['right']] = $rt + 2;
+
+            // Insert o the start os the list os siblings or alone
+            } else {
+                $set[$this->_traversal['left']] = $lt + 1;
+                $set[$this->_traversal['right']] = $lt + 2;
+                $pos = $lt;
+            }
+
+            // Make room for the new node
+            $this->getTableGateway()->update(
+                array(
+                    $this->_traversal['left'] => new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['left']} + 2"),
+                ), new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['left']} > $pos")
+            );
+
+            $this->getTableGateway()->update(
+                array(
+                    $this->_traversal['right'] => new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['right']} + 2"),
+                ), new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['right']} > $pos")
+            );
+        } else {
+            $select = $this->getTableGateway()->getSql()->select();
+            $select->reset('columns')->columns(array('theMax' => new \Zend\Db\Sql\Predicate\Expression("MAX({$this->_traversal['right']})")));
+            $maxRt = (double) $this->getTableGateway()->selectWith($select)->current()->theMax;
+            $set[$this->_traversal['left']] = $maxRt + 1;
+            $set[$this->_traversal['right']] = $maxRt + 2;
+        }
+
+        // Do insert
+        $id = $this->getTableGateway()->insert($set);
+
+        // Reset isTraversable flag to previous value.
+        $this->_isTraversable = $isTraversable;
+
+        return $id;
     }
 
     /**
