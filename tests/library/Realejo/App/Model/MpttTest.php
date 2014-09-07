@@ -248,5 +248,103 @@ class MpttTest extends BaseTestCase
         // Assert if left/right is correct
         $this->assertEquals($this->idOrderedRows, $mptt->fetchAll());
     }
+
+    /**
+     * Tests Mptt->rebuildTreeTraversal()
+     */
+    public function testDelete()
+    {
+        // Cria a tablea com os valores padrões
+        $mptt = new Mptt('mptt', 'id');
+        $this->assertNull($mptt->fetchAll());
+
+        // Set traversal
+        $this->assertFalse($mptt->isTraversable());
+        $mptt->setTraversal(array('refColumn'=>'parent_id', 'order'=>'name'));
+        $this->assertTrue($mptt->isTraversable());
+
+        // Insert default rows
+        foreach($this->defaultRows as $row) {
+            $mptt->insert($row);
+        }
+        $this->assertNotNull($mptt->fetchAll());
+        $this->assertCount(count($this->defaultRows), $mptt->fetchAll());
+
+        // Assert if left/right is correct
+        $this->assertEquals($this->nameOrderedRows, $mptt->fetchAll());
+
+        // Remove a single node (Beef/9)
+        $mptt->delete(9);
+
+        // Verify its parent (Meat/8)
+        $row = $mptt->fetchRow(8);
+        $this->assertNotNull($row);
+        $this->assertEquals(14, $row['lft']);
+        $this->assertEquals(17, $row['rgt']);
+
+        // Verify its sibling (Pork/10)
+        $row = $mptt->fetchRow(10);
+        $this->assertNotNull($row);
+        $this->assertEquals(15, $row['lft']);
+        $this->assertEquals(16, $row['rgt']);
+
+        // Verify the root (Food/1)
+        $row = $mptt->fetchRow(1);
+        $this->assertNotNull($row);
+        $this->assertEquals(1, $row['lft']);
+        $this->assertEquals(22, $row['rgt']);
+
+        // Verify its uncle (Vegetable/11)
+        $row = $mptt->fetchRow(11);
+        $this->assertNotNull($row);
+        $this->assertEquals(18, $row['lft']);
+        $this->assertEquals(21, $row['rgt']);
+
+        // Verify its another uncle (Fruit/2)
+        $row = $mptt->fetchRow(2);
+        $this->assertNotNull($row);
+        $this->assertEquals(2, $row['lft']);
+        $this->assertEquals(13, $row['rgt']);
+
+        // Put it back
+        $mptt->insert($this->defaultRows[9-1]);
+
+        // Assert if left/right is correct
+        $this->assertEquals($this->nameOrderedRows, $mptt->fetchAll());
+
+        // Remove a node with child (Meat/8)
+        $mptt->delete(8);
+
+        // Verify its childs is gone
+        $this->assertNull($mptt->fetchRow(8));
+        $this->assertNull($mptt->fetchRow(9));
+        $this->assertNull($mptt->fetchRow(10));
+
+        // Verify the root (Food/1)
+        $row = $mptt->fetchRow(1);
+        $this->assertNotNull($row);
+        $this->assertEquals(1, $row['lft']);
+        $this->assertEquals(18, $row['rgt']);
+
+        // Verify its uncle (Vegetable/11)
+        $row = $mptt->fetchRow(11);
+        $this->assertNotNull($row);
+        $this->assertEquals(14, $row['lft']);
+        $this->assertEquals(17, $row['rgt']);
+
+        // Verify its another uncle (Fruit/2)
+        $row = $mptt->fetchRow(2);
+        $this->assertNotNull($row);
+        $this->assertEquals(2, $row['lft']);
+        $this->assertEquals(13, $row['rgt']);
+
+        // Put them back
+        $mptt->insert($this->defaultRows[8-1]);
+        $mptt->insert($this->defaultRows[10-1]);
+        $mptt->insert($this->defaultRows[9-1]);
+
+        // Assert if left/right is correct
+        $this->assertEquals($this->nameOrderedRows, $mptt->fetchAll());
+    }
 }
 

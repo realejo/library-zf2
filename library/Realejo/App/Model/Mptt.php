@@ -161,7 +161,7 @@ class Mptt extends Db
     }
 
     /**
-     * Override insert method to include pre-insert hook
+     * Override insert method
      *
      * @param mixed $set
      *
@@ -264,6 +264,56 @@ class Mptt extends Db
         $this->_isTraversable = $isTraversable;
 
         return $id;
+    }
+
+    /**
+     * Override delete method
+     *
+     * @param mixed $key
+     */
+    public function delete($key)
+    {
+        return $this->isTraversable() ? $this->_deleteTraversable($key) : parent::delete($key);
+    }
+
+    /**
+     * Remove the row and calculate left and right values for the remaining rows.
+     * It will delete all child nodes from the row
+     *
+     * @param array $key
+     */
+    protected function _deleteTraversable($key)
+    {
+        $this->_verifyTraversable();
+
+        // Disable traversable flag to prevent automatic traversable manipulation during updates.
+        $isTraversable = $this->_isTraversable;
+        $this->_isTraversable = false;
+
+        // Get the row to be deleted
+        $row = $this->fetchRow($key);
+
+        // Delete the node and it's childs
+        $delete = $this->getTableGateway()->delete(new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['left']} >= {$row[$this->_traversal['left']]} and {$this->_traversal['right']} <= {$row[$this->_traversal['right']]}"));
+
+        // Fixes the left,right for the remaining nodes
+        $fix = $row[$this->_traversal['right']] - $row[$this->_traversal['left']] + 1;
+        $this->getTableGateway()->update(
+            array(
+                $this->_traversal['left'] => new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['left']} - $fix"),
+            ), new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['left']} > {$row[$this->_traversal['left']]}")
+        );
+        $this->getTableGateway()->update(
+            array(
+                $this->_traversal['right'] => new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['right']} - $fix"),
+            ), new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['right']} > {$row[$this->_traversal['right']]}")
+        );
+
+
+        // Reset isTraversable flag to previous value.
+        $this->_isTraversable = $isTraversable;
+
+        return $delete;
     }
 
     /**
