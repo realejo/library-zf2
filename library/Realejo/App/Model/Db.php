@@ -144,9 +144,6 @@ class Db extends Base
             return false;
         }
 
-        // Define a chave a ser usada
-        $key = array( $this->key => $key );
-
         // Salva os dados alterados
         $return = $this->getTableGateway()->update($diff, $this->_getKeyWhere($key));
 
