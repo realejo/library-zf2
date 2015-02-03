@@ -459,24 +459,27 @@ class Base
     public function fetchRow($where, $order = null)
     {
 
-        // Veririfica se há chave definida
-        if (empty($this->key)) {
-            throw new \Exception('Chave não definida em ' . get_class($this) . '::fetchRow()');
+        // Define se é a chave da tabela
+        if (is_numeric($where) || is_string($where)) {
+            // Veririfica se há chave definida
+            if (empty($this->key)) {
+                throw new \Exception('Chave não definida em ' . get_class($this) . '::fetchRow()');
 
-            // Verifica se é uma chave muktipla ou com cast
-        } elseif (is_array($this->key)) {
+                // Verifica se é uma chave muktipla ou com cast
+            } elseif (is_array($this->key)) {
 
-            // Verifica se é uma chave simples com cast
-            if (count($this->key) == 1) {
-                $where = array($this->getKey(true)=>$where);
+                // Verifica se é uma chave simples com cast
+                if (count($this->key) == 1) {
+                    $where = array($this->getKey(true)=>$where);
 
-                // Não é possível acessar um registro com chave multipla usando apenas uma delas
+                    // Não é possível acessar um registro com chave multipla usando apenas uma delas
+                } else {
+                    throw new \Exception('Não é possível acessar chaves múltiplas informando apenas uma em ' . get_class($this) . '::fetchRow()');
+                }
+
             } else {
-                throw new \Exception('Não é possível acessar chaves múltiplas informando apenas uma em ' . get_class($this) . '::fetchRow()');
+                $where = array($this->key=>$where);
             }
-
-        } else {
-            $where = array($this->key=>$where);
         }
 
         // Recupera o usuário
