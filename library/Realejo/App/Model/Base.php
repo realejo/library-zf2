@@ -501,8 +501,11 @@ class Base
      */
     public function fetchAssoc($where = null, $order = null, $count = null, $offset = null)
     {
-        $rowset = $this->fetchAll($where, $order, $count, $offset);
-        if (empty($rowset)) {
+        // Recupera todos os registros
+        $fetchAll = $this->fetchAll($where, $order, $count, $offset);
+
+        // Veririca se foi localizado algum registro
+        if (empty($fetchAll)) {
             return null;
         }
 
@@ -513,7 +516,11 @@ class Base
             $fetchAssoc[$row[$key]] = $row;
         }
 
-        return $return;
+        // Some garbage collection
+        unset($fetchAll);
+
+        // Retorna o array reordenado
+        return $fetchAssoc;
     }
 
     /**
