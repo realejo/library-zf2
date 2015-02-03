@@ -26,6 +26,13 @@ class Db extends Base
     private $_lastDeleteKey;
 
     /**
+     * Define se deve usar todas as chaves para os operações de update e delete
+     *
+     * @var boolean
+     */
+    protected $useAllKeys = true;
+
+    /**
      * Grava um novo registro
      *
      * @param array $dados Dados a serem cadastrados
