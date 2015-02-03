@@ -99,7 +99,7 @@ class Db extends Base
     public function update($set, $key)
     {
         // Verifica se o código é válido
-        if ( !is_numeric($key) ) {
+        if ( empty($key) ) {
             throw new \Exception("O código <b>'$key'</b> inválido em " . get_class($this) . "::update()");
         }
 
@@ -148,7 +148,7 @@ class Db extends Base
         $key = array( $this->key => $key );
 
         // Salva os dados alterados
-        $return = $this->getTableGateway()->update($diff, $key);
+        $return = $this->getTableGateway()->update($diff, $this->_getKeyWhere($key));
 
         // Limpa o cache, se necessário
         if ($this->getUseCache()) {
@@ -210,6 +210,79 @@ class Db extends Base
             } else {
                 throw new \Exception("{$this->key} key does not exist");
             }
+        }
+    }
+
+
+    /**
+     * Retorna a chave no formato que ela deve ser usada
+     *
+     * @param Zend_Db_Expr|string|array $key
+     *
+     * @return Zend_Db_Expr|string
+     */
+    private function _getKeyWhere($key)
+    {
+        if ($key instanceof \Zend\Db\Sql\Expression || $key instanceof \Zend\Db\Sql\Predicate\PredicateInterface) {
+            return $key;
+
+        } elseif (is_string($this->getKey()) && is_numeric($key)) {
+            return "{$this->getKey()} = $key";
+
+        } elseif (is_string($this->getKey()) && is_string($key)) {
+            return "{$this->getKey()} = '$key'";
+
+        } elseif (is_array($this->getKey())) {
+            $where    = array();
+            $usedKeys = array();
+
+            // Verifica as chaves definidas
+            foreach ($this->getKey() as $type=>$definedKey) {
+
+                // Verifica se é uma chave única com cast
+                if (count($this->getKey()) === 1 && !is_array($key)) {
+
+                    // Grava a chave como integer
+                    if (is_numeric($type) || $type === self::KEY_INTEGER) {
+                        $where[] = "$definedKey = $key";
+
+                    // Grava a chave como string
+                    } elseif ($type === self::KEY_STRING) {
+                        $where[] = "$definedKey = '$key'";
+                    }
+                    $usedKeys[] = $definedKey;
+                }
+
+                // Verifica se a chave definida foi informada
+                elseif (is_array($key) && isset($key[$definedKey])) {
+
+                    // Grava a chave como integer
+                    if (is_numeric($type) || $type === self::KEY_INTEGER) {
+                        $where[] = "$definedKey = {$key[$definedKey]}";
+
+                    // Grava a chave como string
+                    } elseif ($type === self::KEY_STRING) {
+                        $where[] = "$definedKey = '{$key[$definedKey]}'";
+                    }
+
+                    // Marca a chave com usada
+                    $usedKeys[] = $definedKey;
+                }
+            }
+
+            // Verifica se alguma chave foi definida
+            if (empty($where)) {
+                throw new \Exception('Nenhuma chave múltipla informada em ' . get_class($this) . '::_getWhere()');
+            }
+
+            // Verifica se todas as chaves foram usadas
+            if ($this->getUseAllKeys() === true && is_array($this->getKey()) && count($usedKeys) !== count($this->getKey())) {
+                throw new \Exception('Não é permitido usar chaves parciais ' . get_class($this) . '::_getWhere()');
+            }
+            return '(' . implode(') AND (', $where). ')';
+
+        } else {
+            throw new \Exception('Chave mal definida em ' . get_class($this) . '::_getWhere()');
         }
     }
 

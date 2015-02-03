@@ -7,7 +7,7 @@
  */
 namespace Realejo;
 
-class Date extends \DateTime
+class Date
 {
     const QUARTER = 'Q';
 
@@ -217,5 +217,25 @@ class Date extends \DateTime
         }
 
         return null;
+    }
+
+    /**
+     * Validate if a date is valid and is in the given format
+     *
+     * @param string $date
+     * @param string $format
+     *
+     * @return boolean
+     */
+    static public function isDate($date, $format = 'm/d/Y')
+    {
+        $dateTime = \DateTime::createFromFormat($format, $date);
+
+        // Verifica se apareceu algum erro
+        $errors = \DateTime::getLastErrors();
+        if (!empty($errors['warning_count'])) {
+            return false;
+        }
+        return $dateTime !== false;
     }
 }

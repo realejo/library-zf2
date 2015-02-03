@@ -18,6 +18,9 @@ use Zend\Paginator\Paginator;
 class Base
 {
 
+    const KEY_STRING  = 'STRING';
+    const KEY_INTEGER = 'INTEGER';
+
     /**
      *
      * @var Zend\Db\TableGateway\TableGateway
@@ -455,11 +458,25 @@ class Base
      */
     public function fetchRow($where, $order = null)
     {
-        // Define o código do usuário
-        if (is_numeric($where)) {
-            $where = array(
-                $this->key => $where
-            );
+
+        // Veririfica se há chave definida
+        if (empty($this->key)) {
+            throw new \Exception('Chave não definida em ' . get_class($this) . '::fetchRow()');
+
+            // Verifica se é uma chave muktipla ou com cast
+        } elseif (is_array($this->key)) {
+
+            // Verifica se é uma chave simples com cast
+            if (count($this->key) == 1) {
+                $where = array($this->getKey(true)=>$where);
+
+                // Não é possível acessar um registro com chave multipla usando apenas uma delas
+            } else {
+                throw new \Exception('Não é possível acessar chaves múltiplas informando apenas uma em ' . get_class($this) . '::fetchRow()');
+            }
+
+        } else {
+            $where = array($this->key=>$where);
         }
 
         // Recupera o usuário
@@ -485,9 +502,12 @@ class Base
         if (empty($rowset)) {
             return null;
         }
-           $return = array();
-          foreach ($rowset as $row) {
-            $return[$row[$this->key]] = $row;
+
+        // Associa pela chave da tabela
+        $fetchAssoc = array();
+        $key = $this->getKey(true);
+        foreach ($fetchAll as $row) {
+            $fetchAssoc[$row[$key]] = $row;
         }
 
         return $return;
@@ -564,6 +584,13 @@ class Base
 
         // Define ao plcaeholder aser usado
         $placeholder = (isset($opts['placeholder'])) ? $opts['placeholder'] : '';
+
+        // Define a chave a ser usada
+        if (isset($opts['key']) && !empty($opts['key']) && is_string($opts['key'])) {
+            $key = $opts['key'];
+        } else {
+            $key = $this->getKey(true);
+        }
 
         // Monta as opções
         $options = '';
