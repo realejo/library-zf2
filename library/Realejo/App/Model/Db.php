@@ -172,14 +172,11 @@ class Db extends Base
         // Grava os dados alterados para referencia
         $this->_lastDeleteKey = $key;
 
-        // Define a chave a ser usada
-        $key = array( $this->key => $key );
-
         // Verifica se deve marcar como removido ou remover o registro
         if ($this->useDeleted === true) {
-            $return = $this->getTableGateway()->update(array('deleted' => 1), $key);
+            $return = $this->getTableGateway()->update(array('deleted' => 1), $this->_getKeyWhere($key));
         } else {
-            $return = $this->getTableGateway()->delete($key);
+            $return = $this->getTableGateway()->delete($this->_getKeyWhere($key));
         }
 
         // Limpa o cache se necessario
@@ -336,4 +333,25 @@ class Db extends Base
     {
         return $this->_lastDeleteKey;
     }
+
+    /**
+     * @return boolean
+     */
+    public function getUseAllKeys ()
+    {
+        return $this->useAllKeys;
+    }
+
+    /**
+     * @param boolean $useAllKeys
+     *
+     * @retrun self
+     */
+    public function setUseAllKeys ($useAllKeys)
+    {
+        $this->useAllKeys = $useAllKeys;
+
+        return $this;
+    }
+
 }
