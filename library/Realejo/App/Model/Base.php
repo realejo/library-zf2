@@ -539,14 +539,15 @@ class Base
         $select = $this->getSelect($where);
 
         // Altera as colunas
-        $select->reset('columns')->columns(new \Zend\Db\Sql\Expression('count(*) as total'));
+        $select->reset('columns')->columns(array('total'=>new \Zend\Db\Sql\Expression('count(*)')));
 
-        $fetchRow = $this->fetchRow($select);
+        $fetchRow = $this->getTableGateway()->selectWith($select);
 
-        if (empty($fetchRow)) {
-            return 0;
+        if ( !is_null($fetchRow) && count($fetchRow) > 0 ) {
+            // Passa o $fetch para array para poder incluir campos extras
+            return $fetchRow->toArray();
         } else {
-            return $fetchRow['total'];
+            return 0;
         }
     }
 
