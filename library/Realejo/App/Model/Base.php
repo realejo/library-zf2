@@ -394,6 +394,13 @@ class Base
 
         } else {
 
+            // Recupera a clausula where dos ExtraFields
+            $extraFields = null;
+            if (isset($where['extra-fields'])) {
+                $extraFields = $where['extra-fields'];
+                unset($where['extra-fields']);
+            }
+
             /**
              *
              * @var \Zend\Db\Sql\Select
@@ -431,7 +438,7 @@ class Base
                     $fetchAll = $fetchAll->toArray();
 
                     // Verifica se deve adicionar campos extras
-                    $fetchAll = $this->getFetchAllExtraFields($fetchAll);
+                    $fetchAll = $this->getFetchAllExtraFields($fetchAll, $extraFields);
                 } else {
                     $fetchAll = null;
                 }
@@ -555,10 +562,11 @@ class Base
      * Inclui campos extras ao retorno do fetchAll quando não estiver usando a paginação
      *
      * @param array $fetchAll
+     * @param array $where
      *
      * @return array
      */
-    protected function getFetchAllExtraFields($fetchAll)
+    protected function getFetchAllExtraFields($fetchAll, $where = null)
     {
         return $fetchAll;
     }
