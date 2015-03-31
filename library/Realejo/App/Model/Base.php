@@ -544,8 +544,8 @@ class Base
         $fetchRow = $this->getTableGateway()->selectWith($select);
 
         if ( !is_null($fetchRow) && count($fetchRow) > 0 ) {
-            // Passa o $fetch para array para poder incluir campos extras
-            return $fetchRow->toArray();
+            $fetchRow = $fetchRow->toArray();
+            return $fetchRow[0];
         } else {
             return 0;
         }
