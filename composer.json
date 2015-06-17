@@ -3,19 +3,15 @@
   "description" : "Biblioteca com models comuns utilizados nos projetos ZF2.",
   "require" : {
     "php" : ">=5.3.3",
-    "zendframework/zendframework" : "2.2.*"
+    "zendframework/zendframework" : ">=2.2.0"
   },
-  "keywords": [
-        "framework",
-        "zf1",
-        "realejo"
-    ],
+  "keywords" : [ "framework", "zf1", "realejo" ],
   "autoload" : {
     "psr-0" : {
       "Realejo\\" : "library/"
     }
   },
-  "type" : "library",
   "license" : "Unlicense",
+  "type" : "library",
   "homepage" : "http://realejo.com.br"
 }
