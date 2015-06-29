@@ -31,6 +31,7 @@ class Cache
          $oCache = new self();
 
          $path = self::getCachePath($class);
+
          if (!empty($path)) {
              // Configura o cache
              $oCache->_cache = StorageFactory::factory(array(
@@ -38,7 +39,7 @@ class Cache
                                  'name' => 'filesystem',
                                  'options' => array(
                                      'cache_dir' => $path,
-                                     'namespace' => $class
+                                     'namespace' => self::getNamespace($class)
                                  ),
                              ),
                              'plugins' => array(
@@ -55,6 +56,18 @@ class Cache
          }
 
          return $oCache->_cache;
+     }
+
+     /**
+      * Retorna o padrão do namespace a ser usado no cache
+      *
+      * @param string $class
+      *
+      * @return string
+      */
+     static public function getNamespace($class)
+     {
+         return str_replace(array('_', '\\', '/'), '.', strtolower($class));
      }
 
      /**
