@@ -88,7 +88,7 @@ class Db extends Base
 
         // Limpa o cache se necessário
         if ($this->getUseCache()) {
-            $this->getCache()->clean();
+            $this->getCache()->flush();
         }
 
         // Retorna o código do registro recem criado
@@ -156,7 +156,7 @@ class Db extends Base
 
         // Limpa o cache, se necessário
         if ($this->getUseCache()) {
-            $this->getCache()->clean();
+            $this->getCache()->flush();
         }
 
         // Retorna que o registro foi alterado
@@ -188,7 +188,7 @@ class Db extends Base
 
         // Limpa o cache se necessario
         if ($this->getUseCache()) {
-            $this->getCache()->clean();
+            $this->getCache()->flush();
         }
 
         // Retorna se o registro foi excluído
