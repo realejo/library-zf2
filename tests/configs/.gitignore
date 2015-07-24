@@ -1,4 +1,0 @@
-# ignora tudo menos o especificado abaixo
-*
-!.gitignore
-!db.dist.php
