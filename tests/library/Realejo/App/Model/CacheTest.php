@@ -2,22 +2,14 @@
 /**
  * CacheTest test case.
  *
- * @author     Realejo
- * @copyright  Copyright (c) 2014 Realejo Design Ltda. (http://www.realejo.com.br)
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
-use Realejo\App\Model\Cache, Zend\Db\Adapter\Adapter;
+use Realejo\App\Model\Cache;
 
-/**
- * Base test case.
- */
-class CacheTest extends PHPUnit_Framework_TestCase
+class CacheTest extends BaseTestCase
 {
-
-    /**
-     *
-     * @var string
-     */
-    protected $dataPath = '/../../../assets/data';
 
     /**
      * Prepares the environment before running a test.
@@ -26,13 +18,7 @@ class CacheTest extends PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        // Verifica se a pasta do cache existe
-        if (file_exists($this->dataPath)) {
-            $this->rrmdir($this->dataPath);
-        }
-        $oldumask = umask(0);
-        mkdir($this->dataPath, 0777, true);
-        umask($oldumask);
+        $this->clearApplicationData();
     }
 
     /**
@@ -43,36 +29,7 @@ class CacheTest extends PHPUnit_Framework_TestCase
         parent::tearDown();
 
         // Remove as pastas criadas
-        $this->rrmdir($this->dataPath);
-    }
-
-    /**
-     * setAPPLICATION_DATA define o APPLICATION_DATA se não existir
-     *
-     * @return string
-     */
-    public function setAPPLICATION_DATA()
-    {
-        // Verifica se a pasta de cache existe
-        if (defined('APPLICATION_DATA') === false) {
-            define('APPLICATION_DATA', $this->dataPath);
-        }
-    }
-
-    /**
-     * Remove os arquivos da pasta e a pasta
-     *
-     * @return string
-     */
-    public function rrmdir($dir) {
-        foreach(glob($dir . '/*') as $file) {
-            if(is_dir($file)) {
-                $this->rrmdir($file);
-            } else {
-                unlink($file);
-            }
-        }
-        rmdir($dir);
+        $this->clearApplicationData();
     }
 
     /**
@@ -90,8 +47,6 @@ class CacheTest extends PHPUnit_Framework_TestCase
      */
     public function testGetCacheRoot()
     {
-        $this->setAPPLICATION_DATA();
-
         // Recupera a pasta aonde será salva as informações
         $path = Cache::getCacheRoot();
 
@@ -108,7 +63,6 @@ class CacheTest extends PHPUnit_Framework_TestCase
      */
     public function testGetCachePath()
     {
-
         // Verifica se todas as opções são iguais
         $this->assertEquals(Cache::getCacheRoot(), Cache::getCachePath(null));
         $this->assertEquals(Cache::getCacheRoot(), Cache::getCachePath(''));

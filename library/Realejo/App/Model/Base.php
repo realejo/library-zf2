@@ -3,19 +3,23 @@
  * Model com acesso ao BD, Cache e Paginator padronizado.
  * Também permite que tenha acesso ao Loader
  *
- * @author     Realejo
- * @copyright  Copyright (c) 2014 Realejo Design Ltda. (http://www.realejo.com.br)
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
 namespace Realejo\App\Model;
 
-use \Zend\Db\TableGateway\Feature\GlobalAdapterFeature;
-use \Zend\Db\Adapter\AdapterInterface;
-use \Zend\Db\TableGateway\TableGateway;
+use Zend\Db\TableGateway\Feature\GlobalAdapterFeature;
+use Zend\Db\Adapter\AdapterInterface;
+use Zend\Db\TableGateway\TableGateway;
 use Zend\Paginator\Adapter\DbSelect;
 use Zend\Paginator\Paginator;
 
 class Base
 {
+
+    const KEY_STRING  = 'STRING';
+    const KEY_INTEGER = 'INTEGER';
 
     /**
      *
@@ -38,14 +42,14 @@ class Base
     /**
      * Não pode ser usado dentro do Loader pois cada classe tem configurações diferentes
      *
-     * @var App_Model_Paginator
+     * @var \Realejo\App\Model\Paginator
      */
     private $_paginator;
 
     /**
      * Não pode ser usado dentro do Loader pois cada classe tem configurações diferentes
      *
-     * @var App_Model_Cache
+     * @var \Zend\Cache\Storage\Adapter\Filesystem
      */
     private $_cache;
 
@@ -108,10 +112,18 @@ class Base
     /**
      * Campos a serem adicionados no <option> como data
      *
-     * @var string array
+     * @var string|array
      */
     protected $htmlSelectOptionData;
 
+    /**
+     * Se o nome da tabela e a chave não estiverem hardcoded é preciso informar
+     *
+     * @param string $table     OPCIONAL. Nome da tabela
+     * @param string $key       OPCIONAL. Chave da tabela
+     * @param string $dbAdapter OPCIONAL .Adapter a ser usado. Se não informado será usado o padrão
+     * @throws \Exception
+     */
     public function __construct($table = null, $key = null, $dbAdapter = null)
     {
         // Verifica o nome da tabela
@@ -147,8 +159,7 @@ class Base
     }
 
     /**
-     *
-     * @return App_Loader
+     * @return \Realejo\App\Loader\Loader
      */
     public function getLoader()
     {
@@ -164,12 +175,16 @@ class Base
         $this->_loader = $loader;
     }
 
-	/**
-     *
+    /**
      * @return TableGateway
      */
     public function getTableGateway()
     {
+        // Verifica se já está carregado
+        if (isset($this->_tableGateway)) {
+            return $this->_tableGateway;
+        }
+
         if (empty($this->table)) {
             throw new \Exception('Tabela não definida em ' . get_class($this) . '::getTable()');
         }
@@ -221,7 +236,8 @@ class Base
             foreach ($where as $id => $w) {
 
                 // Checks $where is not string
-                if ($w instanceof \Zend\Db\Sql\Expression) {
+                //@todo deveria ser Expression ou PredicateInterface
+                if ($w instanceof \Zend\Db\Sql\Expression || $w instanceof \Zend\Db\Sql\Predicate\PredicateInterface) {
                     $this->where[] = $w;
 
                 // Checks is deleted
@@ -237,10 +253,11 @@ class Base
                 } elseif ($id === 'ativo' && $w === false) {
                     $this->where[] = "{$this->getTableGateway()->getTable()}.ativo=0";
 
-                    // Checks $id is not numeric and $w is numeric
+                // Checks $id is not numeric and $w is numeric
                 } elseif (! is_numeric($id) && is_numeric($w)) {
-                    if (strpos($id, '.') === false)
+                    if (strpos($id, '.') === false) {
                         $id = $this->getTableGateway()->getTable() . ".$id";
+                    }
                     $this->where[] = "$id=$w";
 
                 /**
@@ -252,10 +269,11 @@ class Base
                  * }
                  */
 
-                    // Checks $id is not numeric and $w is string
+                // Checks $id is not numeric and $w is string
                 } elseif (! is_numeric($id) && is_string($id)) {
-                    if (strpos($id, '.') === false)
+                    if (strpos($id, '.') === false) {
                         $id = $this->getTableGateway()->getTable() . ".$id";
+                    }
                     $this->where[] = "$id='$w'";
 
                 /**
@@ -267,7 +285,7 @@ class Base
                  * }
                  */
 
-                    // Return $id is not numeric and $w is string
+                // Return $id is not numeric and $w is string
                 } else {
                     throw new \Exception('Condição inválida em TableAdapter::getWhere()');
                 }
@@ -347,7 +365,7 @@ class Base
      */
     public function getSQlString($where = null, $order = null, $count = null, $offset = null)
     {
-        return $this->getSelect($where, $order, $count, $offset)->getSqlString();
+        return $this->getSelect($where, $order, $count, $offset)->getSqlString($this->getTableGateway()->getAdapter()->getPlatform());
     }
 
     /**
@@ -364,7 +382,7 @@ class Base
     {
         // Cria a assinatura da consulta
         if ($where instanceof \Zend\Db\Sql\Select) {
-            $md5 = md5($where->assemble());
+            $md5 = md5($where->getSqlString());
         } else {
             $md5 = md5(var_export($where, true) . var_export($order, true) . var_export($count, true) . var_export($offset, true) . var_export($this->getShowDeleted(), true) . var_export($this->getUseDeleted(), true));
         }
@@ -375,6 +393,13 @@ class Base
             return $this->getCache()->getItem($md5);
 
         } else {
+
+            // Recupera a clausula where dos ExtraFields
+            $extraFields = null;
+            if (isset($where['extra-fields'])) {
+                $extraFields = $where['extra-fields'];
+                unset($where['extra-fields']);
+            }
 
             /**
              *
@@ -413,7 +438,7 @@ class Base
                     $fetchAll = $fetchAll->toArray();
 
                     // Verifica se deve adicionar campos extras
-                    $fetchAll = $this->getFetchAllExtraFields($fetchAll);
+                    $fetchAll = $this->getFetchAllExtraFields($fetchAll, $extraFields);
                 } else {
                     $fetchAll = null;
                 }
@@ -440,11 +465,28 @@ class Base
      */
     public function fetchRow($where, $order = null)
     {
-        // Define o código do usuário
-        if (is_numeric($where)) {
-            $where = array(
-                $this->key => $where
-            );
+
+        // Define se é a chave da tabela
+        if (is_numeric($where) || is_string($where)) {
+            // Veririfica se há chave definida
+            if (empty($this->key)) {
+                throw new \Exception('Chave não definida em ' . get_class($this) . '::fetchRow()');
+
+                // Verifica se é uma chave muktipla ou com cast
+            } elseif (is_array($this->key)) {
+
+                // Verifica se é uma chave simples com cast
+                if (count($this->key) == 1) {
+                    $where = array($this->getKey(true)=>$where);
+
+                    // Não é possível acessar um registro com chave multipla usando apenas uma delas
+                } else {
+                    throw new \Exception('Não é possível acessar chaves múltiplas informando apenas uma em ' . get_class($this) . '::fetchRow()');
+                }
+
+            } else {
+                $where = array($this->key=>$where);
+            }
         }
 
         // Recupera o usuário
@@ -466,13 +508,26 @@ class Base
      */
     public function fetchAssoc($where = null, $order = null, $count = null, $offset = null)
     {
-        $rowset = $this->fetchAll($where, $order, $count, $offset);
-        $return = array();
-        foreach ($rowset as $row) {
-            $return[$row[$this->key]] = $row;
+        // Recupera todos os registros
+        $fetchAll = $this->fetchAll($where, $order, $count, $offset);
+
+        // Veririca se foi localizado algum registro
+        if (empty($fetchAll)) {
+            return null;
         }
 
-        return $return;
+        // Associa pela chave da tabela
+        $fetchAssoc = array();
+        $key = $this->getKey(true);
+        foreach ($fetchAll as $row) {
+            $fetchAssoc[$row[$key]] = $row;
+        }
+
+        // Some garbage collection
+        unset($fetchAll);
+
+        // Retorna o array reordenado
+        return $fetchAssoc;
     }
 
     /**
@@ -491,14 +546,15 @@ class Base
         $select = $this->getSelect($where);
 
         // Altera as colunas
-        $select->reset('columns')->columns(new \Zend\Db\Sql\Expression('count(*) as total'));
+        $select->reset('columns')->columns(array('total'=>new \Zend\Db\Sql\Expression('count(*)')));
 
-        $fetchRow = $this->fetchRow($select);
+        $fetchRow = $this->getTableGateway()->selectWith($select);
 
-        if (empty($fetchRow)) {
-            return 0;
+        if ( !is_null($fetchRow) && count($fetchRow) > 0 ) {
+            $fetchRow = $fetchRow->toArray();
+            return $fetchRow[0];
         } else {
-            return $fetchRow['total'];
+            return 0;
         }
     }
 
@@ -506,10 +562,11 @@ class Base
      * Inclui campos extras ao retorno do fetchAll quando não estiver usando a paginação
      *
      * @param array $fetchAll
+     * @param array $where
      *
      * @return array
      */
-    protected function getFetchAllExtraFields($fetchAll)
+    protected function getFetchAllExtraFields($fetchAll, $where = null)
     {
         return $fetchAll;
     }
@@ -532,7 +589,7 @@ class Base
     {
         // Recupera os registros
         $where = (isset($opts['where'])) ? $opts['where'] : null;
-        $fetchAll = $this->fetchAll();
+        $fetchAll = $this->fetchAll($where);
 
         // Verifica o select_option_data
         if (isset($this->htmlSelectOptionData) && is_string($this->htmlSelectOptionData)) {
@@ -546,6 +603,13 @@ class Base
 
         // Define ao plcaeholder aser usado
         $placeholder = (isset($opts['placeholder'])) ? $opts['placeholder'] : '';
+
+        // Define a chave a ser usada
+        if (isset($opts['key']) && !empty($opts['key']) && is_string($opts['key'])) {
+            $key = $opts['key'];
+        } else {
+            $key = $this->getKey(true);
+        }
 
         // Monta as opções
         $options = '';
@@ -604,7 +668,7 @@ class Base
     /**
      * Retorna o frontend para gravar o cache
      *
-     * @return Zend\Cache\Storage\Adapter\Filesystem
+     * @return \Zend\Cache\Storage\Adapter\Filesystem
      */
     public function getCache()
     {
@@ -612,10 +676,6 @@ class Base
             $this->_cache = new \Realejo\App\Model\Cache();
         }
         return $this->_cache->getFrontend(get_class($this));
-        /*
-        $cache = $this->getLoader()->getModel('\App\Model\Cache');
-        return $cache->getFrontend(get_class($this));
-        */
     }
 
     /**
@@ -650,7 +710,7 @@ class Base
     /**
      * Retorna o frontend para gravar o cache
      *
-     * @return App_Model_Paginator
+     * @return \Realejo\App\Model\Paginator
      */
     public function getPaginator()
     {

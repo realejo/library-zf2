@@ -4,9 +4,9 @@
  *
  * Ele cria automaticamente a pasta de cache, dentro de data/cache, baseado no nome da classe
  *
- * @author     Realejo
- * @version    $Id: Cache.php 54 2014-03-21 17:16:12Z rodrigo $
- * @copyright  Copyright (c) 2012 Realejo Design Ltda. (http://www.realejo.com.br)
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
 namespace Realejo\App\Model;
 
@@ -31,6 +31,7 @@ class Cache
          $oCache = new self();
 
          $path = self::getCachePath($class);
+
          if (!empty($path)) {
              // Configura o cache
              $oCache->_cache = StorageFactory::factory(array(
@@ -38,7 +39,7 @@ class Cache
                                  'name' => 'filesystem',
                                  'options' => array(
                                      'cache_dir' => $path,
-                                     'namespace' => $class
+                                     'namespace' => self::getNamespace($class)
                                  ),
                              ),
                              'plugins' => array(
@@ -55,6 +56,18 @@ class Cache
          }
 
          return $oCache->_cache;
+     }
+
+     /**
+      * Retorna o padrão do namespace a ser usado no cache
+      *
+      * @param string $class
+      *
+      * @return string
+      */
+     static public function getNamespace($class)
+     {
+         return str_replace(array('_', '\\', '/'), '.', strtolower($class));
      }
 
      /**
@@ -83,7 +96,7 @@ class Cache
          // Verifica se a pasta do cache existe
          if (!file_exists($cachePath)) {
              $oldumask = umask(0);
-             mkdir($cachePath, 0777, true); // or even 01777 so you get the sticky bit set
+             mkdir($cachePath, 0777, true);
              umask($oldumask);
          }
 
@@ -102,12 +115,12 @@ class Cache
      static public function getCachePath($class = '')
      {
          // Define a pasta de cache
-         $cachePath = self::getCacheRoot() . '/' . str_replace('_', '/', strtolower($class));
+         $cachePath = self::getCacheRoot() . '/' . str_replace(array('_', '\\'), '/', strtolower($class));
 
          // Verifica se a pasta do cache existe
          if (!file_exists($cachePath)) {
              $oldumask = umask(0);
-             mkdir($cachePath, 0777, true); // or even 01777 so you get the sticky bit set
+             mkdir($cachePath, 0777, true);
              umask($oldumask);
          }
 

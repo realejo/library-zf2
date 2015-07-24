@@ -2,14 +2,12 @@
 /**
  * PaginatorTest test case.
  *
- * @author     Realejo
- * @copyright  Copyright (c) 2014 Realejo Design Ltda. (http://www.realejo.com.br)
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
-use Realejo\App\Model\Paginator, Zend\Db\Adapter\Adapter;
+use Realejo\App\Model\Paginator;
 
-/**
- * Base test case.
- */
 class PaginatorTest extends PHPUnit_Framework_TestCase
 {
     /**

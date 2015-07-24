@@ -2,11 +2,13 @@
 /**
  * Model basico para o App_Model com as funções de create, update e delete
  *
- * @author     Realejo
- * @version    $Id: Base.php 61 2014-04-01 16:26:39Z rodrigo $
- * @copyright  Copyright (c) 2012 Realejo Design Ltda. (http://www.realejo.com.br)
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
 namespace Realejo\App\Model;
+
+use Realejo\App\Model\Base;
 
 class Db extends Base
 {
@@ -22,6 +24,13 @@ class Db extends Base
     private $_lastUpdateKey;
 
     private $_lastDeleteKey;
+
+    /**
+     * Define se deve usar todas as chaves para os operações de update e delete
+     *
+     * @var boolean
+     */
+    protected $useAllKeys = true;
 
     /**
      * Grava um novo registro
@@ -55,9 +64,22 @@ class Db extends Base
         $this->getTableGateway()->insert($set);
 
         // Recupera a chave gerada do registro
-        if (isset($set[$this->key])) {
+        if (is_array($this->key)) {
+            $key = array();
+            foreach ($this->key as $k) {
+                if (isset($set[$k])) {
+                    $key[$k] = $set[$k];
+                } else {
+                    $key = false;
+                    break;
+                }
+            }
+
+        } elseif (isset($set[$this->key])) {
             $key = $set[$this->key];
-        } else {
+        }
+
+        if (empty($key)) {
             $key = $this->getTableGateway()->getAdapter()->getDriver()->getLastGeneratedValue();
         }
 
@@ -66,7 +88,7 @@ class Db extends Base
 
         // Limpa o cache se necessário
         if ($this->getUseCache()) {
-            $this->getCache()->clean();
+            $this->getCache()->flush();
         }
 
         // Retorna o código do registro recem criado
@@ -84,7 +106,7 @@ class Db extends Base
     public function update($set, $key)
     {
         // Verifica se o código é válido
-        if ( !is_numeric($key) ) {
+        if ( empty($key) ) {
             throw new \Exception("O código <b>'$key'</b> inválido em " . get_class($this) . "::update()");
         }
 
@@ -129,15 +151,12 @@ class Db extends Base
             return false;
         }
 
-        // Define a chave a ser usada
-        $key = array( $this->key => $key );
-
         // Salva os dados alterados
-        $return = $this->getTableGateway()->update($diff, $key);
+        $return = $this->getTableGateway()->update($diff, $this->_getKeyWhere($key));
 
         // Limpa o cache, se necessário
         if ($this->getUseCache()) {
-            $this->getCache()->clean();
+            $this->getCache()->flush();
         }
 
         // Retorna que o registro foi alterado
@@ -160,19 +179,16 @@ class Db extends Base
         // Grava os dados alterados para referencia
         $this->_lastDeleteKey = $key;
 
-        // Define a chave a ser usada
-        $key = array( $this->key => $key );
-
         // Verifica se deve marcar como removido ou remover o registro
         if ($this->useDeleted === true) {
-            $return = $this->getTableGateway()->update(array('deleted' => 1), $key);
+            $return = $this->getTableGateway()->update(array('deleted' => 1), $this->_getKeyWhere($key));
         } else {
-            $return = $this->getTableGateway()->delete($key);
+            $return = $this->getTableGateway()->delete($this->_getKeyWhere($key));
         }
 
         // Limpa o cache se necessario
         if ($this->getUseCache()) {
-            $this->getCache()->clean();
+            $this->getCache()->flush();
         }
 
         // Retorna se o registro foi excluído
@@ -191,12 +207,83 @@ class Db extends Base
             }
 
             if ($this->fetchRow($dados[$this->key])) {
-                return $this->update($dados, array(
-                    $this->key => $dados[$this->key]
-                ));
+                return $this->update($dados, $dados[$this->key]);
             } else {
                 throw new \Exception("{$this->key} key does not exist");
             }
+        }
+    }
+
+
+    /**
+     * Retorna a chave no formato que ela deve ser usada
+     *
+     * @param Zend_Db_Expr|string|array $key
+     *
+     * @return Zend_Db_Expr|string
+     */
+    private function _getKeyWhere($key)
+    {
+        if ($key instanceof \Zend\Db\Sql\Expression || $key instanceof \Zend\Db\Sql\Predicate\PredicateInterface) {
+            return $key;
+
+        } elseif (is_string($this->getKey()) && is_numeric($key)) {
+            return "{$this->getKey()} = $key";
+
+        } elseif (is_string($this->getKey()) && is_string($key)) {
+            return "{$this->getKey()} = '$key'";
+
+        } elseif (is_array($this->getKey())) {
+            $where    = array();
+            $usedKeys = array();
+
+            // Verifica as chaves definidas
+            foreach ($this->getKey() as $type=>$definedKey) {
+
+                // Verifica se é uma chave única com cast
+                if (count($this->getKey()) === 1 && !is_array($key)) {
+
+                    // Grava a chave como integer
+                    if (is_numeric($type) || $type === self::KEY_INTEGER) {
+                        $where[] = "$definedKey = $key";
+
+                    // Grava a chave como string
+                    } elseif ($type === self::KEY_STRING) {
+                        $where[] = "$definedKey = '$key'";
+                    }
+                    $usedKeys[] = $definedKey;
+                }
+
+                // Verifica se a chave definida foi informada
+                elseif (is_array($key) && isset($key[$definedKey])) {
+
+                    // Grava a chave como integer
+                    if (is_numeric($type) || $type === self::KEY_INTEGER) {
+                        $where[] = "$definedKey = {$key[$definedKey]}";
+
+                    // Grava a chave como string
+                    } elseif ($type === self::KEY_STRING) {
+                        $where[] = "$definedKey = '{$key[$definedKey]}'";
+                    }
+
+                    // Marca a chave com usada
+                    $usedKeys[] = $definedKey;
+                }
+            }
+
+            // Verifica se alguma chave foi definida
+            if (empty($where)) {
+                throw new \Exception('Nenhuma chave múltipla informada em ' . get_class($this) . '::_getWhere()');
+            }
+
+            // Verifica se todas as chaves foram usadas
+            if ($this->getUseAllKeys() === true && is_array($this->getKey()) && count($usedKeys) !== count($this->getKey())) {
+                throw new \Exception('Não é permitido usar chaves parciais ' . get_class($this) . '::_getWhere()');
+            }
+            return '(' . implode(') AND (', $where). ')';
+
+        } else {
+            throw new \Exception('Chave mal definida em ' . get_class($this) . '::_getWhere()');
         }
     }
 
@@ -253,4 +340,25 @@ class Db extends Base
     {
         return $this->_lastDeleteKey;
     }
+
+    /**
+     * @return boolean
+     */
+    public function getUseAllKeys ()
+    {
+        return $this->useAllKeys;
+    }
+
+    /**
+     * @param boolean $useAllKeys
+     *
+     * @retrun self
+     */
+    public function setUseAllKeys ($useAllKeys)
+    {
+        $this->useAllKeys = $useAllKeys;
+
+        return $this;
+    }
+
 }

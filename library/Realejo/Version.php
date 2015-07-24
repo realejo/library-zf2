@@ -2,8 +2,9 @@
 /**
  * Classe para armazenar e recuperar a versão da biblioteca da Realejo
  *
- * @author     Realejo
- * @copyright  Copyright (c) 2011-2012 Realejo Design Ltda. (http://www.realejo.com.br)
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
 namespace Realejo\App;
 
@@ -49,7 +50,7 @@ class Version
         if (null === self::$_latestVersion) {
             self::$_latestVersion = 'not available';
 
-            $handle = fopen('http://realejo.com.br/api/library-zf2-version', 'r');
+            $handle = fopen('https://raw.githubusercontent.com/realejo/library-zf2/master/version', 'r');
             if (false !== $handle) {
                 self::$_latestVersion = stream_get_contents($handle);
                 fclose($handle);

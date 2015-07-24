@@ -2,44 +2,33 @@
 /**
  * BaseTest test case.
  *
- * @author     Realejo
- * @copyright  Copyright (c) 2014 Realejo Design Ltda. (http://www.realejo.com.br)
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
-use Realejo\App\Model\Base, Zend\Db\Adapter\Adapter, \Zend\Db\Sql\Expression;
+use Realejo\App\Model\Base,
+    Zend\Db\Adapter\Adapter;
 
-
-/**
- * Base test case.
- */
-class BaseTest extends PHPUnit_Framework_TestCase
+class BaseTest extends BaseTestCase
 {
-
     /**
-     *
      * @var string
      */
     protected $tableName = "album";
 
     /**
-     *
      * @var string
      */
     protected $tableKeyName = "id";
 
+    protected $tables = array('album');
+
     /**
-     *
      * @var Base
      */
     private $Base;
 
     /**
-     *
-     * @var string
-     */
-    protected $dataPath = '/../../../assets/data';
-
-    /**
-     *
      * @var Zend\Db\Adapter\Adapter
      */
     protected $pdoAdapter = null;
@@ -73,58 +62,14 @@ class BaseTest extends PHPUnit_Framework_TestCase
 
     /**
      *
-     * @return \Zend\Db\Adapter\Adapter
-     */
-    public function getPdoAdapter()
-    {
-        if ($this->pdoAdapter === null) {
-            $this->pdoAdapter = new \Zend\Db\Adapter\Adapter(array(
-                'driver' => 'Pdo_Sqlite',
-                'database' => realpath(__DIR__ . '/../../assets') . '/sqlite.db'
-            ));
-        }
-        return $this->pdoAdapter;
-    }
-
-    /**
-     *
-     * @return \Realejo\Db\BaseTest
-     */
-    public function createTable()
-    {
-        $conn = $this->getPdoAdapter();
-        $conn->query("
-            CREATE TABLE {$this->tableName} (
-            {$this->tableKeyName} INTEGER PRIMARY KEY ASC,
-            artist varchar(100) NOT NULL,
-            title varchar(100) NOT NULL,
-            deleted INTEGER UNSIGNED NOT NULL DEFAULT 0
-            );", Adapter::QUERY_MODE_EXECUTE);
-
-        return $this;
-    }
-
-    /**
-     *
      * @return \Realejo\Db\BaseTest
      */
     public function insertDefaultRows()
     {
-        $pdoAdapter = $this->getPdoAdapter();
         foreach ($this->defaultValues as $row) {
-            $pdoAdapter->query("INSERT into {$this->tableName}({$this->tableKeyName}, artist, title, deleted)
-        VALUES ({$row[$this->tableKeyName]}, '{$row['artist']}', '{$row['title']}', {$row['deleted']});", Adapter::QUERY_MODE_EXECUTE);
+            $this->getAdapter()->query("INSERT into {$this->tableName}({$this->tableKeyName}, artist, title, deleted)
+                VALUES ({$row[$this->tableKeyName]}, '{$row['artist']}', '{$row['title']}', {$row['deleted']});", Adapter::QUERY_MODE_EXECUTE);
         }
-        return $this;
-    }
-
-    /**
-     *
-     * @return \Realejo\Db\BaseTest
-     */
-    public function dropTable()
-    {
-        $this->getPdoAdapter()->query("DROP TABLE IF EXISTS {$this->tableName}", Adapter::QUERY_MODE_EXECUTE);
         return $this;
     }
 
@@ -134,7 +79,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
      */
     public function truncateTable()
     {
-        $this->dropTable()->createTable();
+        $this->dropTables()->createTables();
         return $this;
     }
 
@@ -145,7 +90,8 @@ class BaseTest extends PHPUnit_Framework_TestCase
     protected function setUp()
     {
         parent::setUp();
-        $this->dropTable()->createTable()->insertDefaultRows();
+
+        $this->dropTables()->createTables()->insertDefaultRows();
     }
 
     /**
@@ -154,7 +100,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
     protected function tearDown()
     {
         parent::tearDown();
-        $this->dropTable();
+        $this->dropTables();
     }
 
     /**
@@ -163,22 +109,9 @@ class BaseTest extends PHPUnit_Framework_TestCase
     public function getBase($reset = false)
     {
         if ($this->Base === null || $reset === true) {
-            $this->Base = new Base($this->tableName, $this->tableKeyName, $this->getPdoAdapter());
+            $this->Base = new Base($this->tableName, $this->tableKeyName, $this->getAdapter());
         }
         return $this->Base;
-    }
-
-    /**
-     * setAPPLICATION_DATA define o APPLICATION_DATA se não existir
-     *
-     * @return string
-     */
-    public function setAPPLICATION_DATA()
-    {
-        // Verifica se a pasta de cache existe
-        if (defined('APPLICATION_DATA') === false) {
-            define('APPLICATION_DATA', $this->dataPath);
-        }
     }
 
     /**
@@ -213,19 +146,17 @@ class BaseTest extends PHPUnit_Framework_TestCase
      */
     public function testCreateBase()
     {
-        $Base = new Base($this->tableName, $this->tableKeyName, $this->getPdoAdapter());
+        $Base = new Base($this->tableName, $this->tableKeyName, $this->getAdapter());
         $this->assertInstanceOf('Realejo\App\Model\Base', $Base);
     }
 
     /**
-     * teste o adapter PDO
+     * teste o adapter
      */
-    public function testPdoAdatper()
+    public function testAdatper()
     {
-        $this->assertInstanceOf('\Zend\Db\Adapter\Adapter', $this->getPdoAdapter());
-        $this->assertInstanceOf('\Zend\Db\Adapter\Adapter', $this->pdoAdapter);
+        $this->assertInstanceOf('\Zend\Db\Adapter\Adapter', $this->getAdapter());
     }
-
 
     /**
      * Tests Base->getOrder()
@@ -242,7 +173,6 @@ class BaseTest extends PHPUnit_Framework_TestCase
         // Define uma nova ordem com string
         $this->getBase()->setOrder('title');
         $this->assertEquals('title', $this->getBase()->getOrder());
-
 
         // Define uma nova ordem com array
         $this->getBase()->setOrder(array('id', 'title'));
@@ -318,17 +248,17 @@ class BaseTest extends PHPUnit_Framework_TestCase
     public function testGetSQlString()
     {
         // Verfiica o padrão não usar o campo deleted e não mostrar os removidos
-        $this->assertEquals('SELECT "album".* FROM "album"', $this->getBase()->getSQlString(), 'showDeleted=false, useDeleted=false');
+        $this->assertEquals('SELECT `album`.* FROM `album`', $this->getBase()->getSQlString(), 'showDeleted=false, useDeleted=false');
 
         // Marca para usar o campo deleted
         $this->getBase()->setUseDeleted(true);
-        $this->assertEquals('SELECT "album".* FROM "album" WHERE album.deleted=0', $this->getBase()->getSQlString(), 'showDeleted=false, useDeleted=true');
+        $this->assertEquals('SELECT `album`.* FROM `album` WHERE album.deleted=0', $this->getBase()->getSQlString(), 'showDeleted=false, useDeleted=true');
 
         // Marca para não usar o campo deleted
         $this->getBase()->setUseDeleted(false);
 
-        $this->assertEquals('SELECT "album".* FROM "album" WHERE album.id=1234', $this->getBase()->getSQlString(array('id'=>1234)));
-        $this->assertEquals("SELECT \"album\".* FROM \"album\" WHERE album.texto='textotextotexto'", $this->getBase()->getSQlString(array('texto'=>'textotextotexto')));
+        $this->assertEquals('SELECT `album`.* FROM `album` WHERE album.id=1234', $this->getBase()->getSQlString(array('id'=>1234)));
+        $this->assertEquals("SELECT `album`.* FROM `album` WHERE album.texto='textotextotexto'", $this->getBase()->getSQlString(array('texto'=>'textotextotexto')));
 
     }
 
@@ -339,7 +269,7 @@ class BaseTest extends PHPUnit_Framework_TestCase
     {
         $select = $this->getBase()->getSQlSelect();
         $this->assertInstanceOf('Zend\Db\Sql\Select', $select);
-        $this->assertEquals($select->getSqlString(), $this->getBase()->getSQlString());
+        $this->assertEquals($select->getSqlString($this->getAdapter()->getPlatform()), $this->getBase()->getSQlString());
     }
 
     /**
@@ -401,8 +331,6 @@ class BaseTest extends PHPUnit_Framework_TestCase
         $fetchAll = $this->getBase()->setUsePaginator(false)->fetchAll(null, null, 2);
         $this->assertEquals(json_encode($fetchAll), $paginator);
 
-        $this->setAPPLICATION_DATA();
-
         // Apaga qualquer cache
         $this->assertTrue($this->getBase()->getCache()->flush(), 'apaga o cache');
 
@@ -431,7 +359,6 @@ class BaseTest extends PHPUnit_Framework_TestCase
         $this->assertCount(5, $this->getBase()->fetchAll(), 'Deve conter 5 registros');
         $this->assertTrue($this->getBase()->getCache()->flush(), 'apaga o cache');
         $this->assertCount(4, $this->getBase()->fetchAll(), 'Deve conter 4 registros 4');
-
 
     }
 

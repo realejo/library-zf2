@@ -5,7 +5,13 @@ php:
   - 5.4
   - 5.3
 
+ env:
+  - MYSQL_IP="127.0.0.1"
+  - MYSQL_USER="travis"
+  - MYSQL_PASS=""
+  
 before_script:
+  - mysql -e 'create database test;'
   - composer install
   - cd ./tests
     

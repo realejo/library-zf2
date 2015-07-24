@@ -1,23 +1,23 @@
 <?php
 /**
- * MVC ZF2 LIB
+ * Realejo Library ZF2
  *
- * @category  TestUnit
- * @author    Realejo
- * @version   $Id: Bootstrap.php 32 2013-11-09 14:16:14Z rodrigo $
- * @copyright Copyright (c) 2013 Realejo (http://realejo.com.br)
+ * @link      http://github.com/realejo/libraray-zf2
+ * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
+ * @license   http://unlicense.org
  */
 namespace Realejo;
 
-use Zend\Loader\AutoloaderFactory;
-use Zend\Mvc\Service\ServiceManagerConfig;
-use Zend\ServiceManager\ServiceManager;
 use RuntimeException;
 
 error_reporting(E_ALL | E_STRICT);
 chdir(__DIR__);
 
 define('APPLICATION_ENV', 'testing');
+define('TEST_ROOT', __DIR__);
+define('APPLICATION_DATA', TEST_ROOT . '/assets/_files/data');
+
+include "library/TestAssets/BaseTestCase.php";
 
 /**
  * Test bootstrap, for setting up autoloading
