@@ -1,4 +1,7 @@
 <?php
+
+namespace RealejoTest\App\Model;
+
 /**
  * MpttTest test case.
  *
@@ -6,7 +9,8 @@
  * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
  * @license   http://unlicense.org
  */
-use Realejo\App\Model\Mptt;
+use Realejo\App\Model\Mptt,
+    RealejoTest\BaseTestCase;
 
 /**
  * Mptt test case.

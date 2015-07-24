@@ -1,4 +1,7 @@
 <?php
+
+namespace RealejoTest\App\Model;
+
 /**
  * PaginatorTest test case.
  *
@@ -8,7 +11,7 @@
  */
 use Realejo\App\Model\Paginator;
 
-class PaginatorTest extends PHPUnit_Framework_TestCase
+class PaginatorTest extends \PHPUnit_Framework_TestCase
 {
     /**
      *

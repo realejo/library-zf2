@@ -1,4 +1,6 @@
 <?php
+namespace RealejoTest;
+
 /**
  * Test case para as funcionalidades padrões
  *
@@ -8,7 +10,7 @@
  */
 use Zend\Db\Adapter\Adapter;
 
-class BaseTestCase extends PHPUnit_Framework_TestCase
+class BaseTestCase extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var Zend\Db\Adapter\Adapter
@@ -60,7 +62,7 @@ class BaseTestCase extends PHPUnit_Framework_TestCase
 
         // Recupera o script para criar as tabelas
         foreach($tables as $tbl) {
-            $create = TEST_ROOT  . "/assets/sql/$tbl.create.sql";
+            $create = TEST_ROOT  . "/_files/sql/$tbl.create.sql";
             if (!file_exists($create)) {
                 $this->fail("create não encontrado em $create");
             }
@@ -84,7 +86,7 @@ class BaseTestCase extends PHPUnit_Framework_TestCase
         if (!empty($tables)) {
             // Recupera o script para remover as tabelas
             foreach($tables as $tbl) {
-                $drop = TEST_ROOT . "/assets/sql/$tbl.drop.sql";
+                $drop = TEST_ROOT . "/_files/sql/$tbl.drop.sql";
                 if (!file_exists($drop)) {
                     $this->fail("drop não encontrado em $drop");
                 }

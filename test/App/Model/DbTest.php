@@ -1,4 +1,7 @@
 <?php
+
+namespace RealejoTest\App\Model;
+
 /**
  * DbTest test case.
  *
@@ -6,7 +9,8 @@
  * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
  * @license   http://unlicense.org
  */
-use Realejo\App\Model\Db;
+use Realejo\App\Model\Db,
+    RealejoTest\BaseTestCase;
 
 class DbTest extends BaseTestCase
 {

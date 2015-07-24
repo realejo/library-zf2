@@ -11,10 +11,10 @@ namespace Realejo\App;
 class Version
 {
     /**
-     * RWLIB indentificador de versão
+     * indentificador de versão
      * @see compareVersion()
      */
-    CONST VERSION = '1.0';
+    CONST VERSION = '2.0';
 
     /**
      * The latest stable version Zend Framework available

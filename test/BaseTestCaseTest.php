@@ -1,4 +1,8 @@
 <?php
+namespace RealejoTest;
+
+use RealejoTest\BaseTestCase;
+
 /**
  * Test case para as funcionalidades com conexão ao banco de dados
  *
@@ -6,7 +10,7 @@
  * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
  * @license   http://unlicense.org
  */
-class BaseTestCaseTest extends PHPUnit_Framework_TestCase
+class BaseTestCaseTest extends \PHPUnit_Framework_TestCase
 {
     /**
      *

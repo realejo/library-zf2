@@ -1,4 +1,6 @@
 <?php
+namespace RealejoTest\App\Model;
+
 /**
  * CacheTest test case.
  *
@@ -6,7 +8,8 @@
  * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
  * @license   http://unlicense.org
  */
-use Realejo\App\Model\Cache;
+use Realejo\App\Model\Cache,
+    RealejoTest\BaseTestCase;
 
 class CacheTest extends BaseTestCase
 {

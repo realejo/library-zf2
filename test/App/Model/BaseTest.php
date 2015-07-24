@@ -1,4 +1,6 @@
 <?php
+namespace RealejoTest\App\Model;
+
 /**
  * BaseTest test case.
  *
@@ -7,6 +9,7 @@
  * @license   http://unlicense.org
  */
 use Realejo\App\Model\Base,
+    RealejoTest\BaseTestCase,
     Zend\Db\Adapter\Adapter;
 
 class BaseTest extends BaseTestCase
