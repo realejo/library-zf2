@@ -133,7 +133,6 @@ class DbMultipleKeyTest extends BaseTestCase
         );
 
         $id = $this->getDb()->insert($row);
-        var_dump($id);die();
         $this->assertEquals(2, $id, 'Verifica a chave criada=2');
 
         $this->assertCount(2, $this->getDb()->fetchAll(), 'Verifica que há DOIS registro');
