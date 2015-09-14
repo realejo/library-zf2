@@ -18,8 +18,11 @@ use Zend\Paginator\Paginator;
 class Base
 {
 
-    const KEY_STRING  = 'STRING';
-    const KEY_INTEGER = 'INTEGER';
+    const KEY_STRING   = 'STRING';
+    const KEY_INTEGER  = 'INTEGER';
+    const KEY_DATE     = 'DATE';
+    const KEY_DATETIME = 'DATETIME';
+    const KEY_FLOAT    = 'FLOAT';
 
     /**
      *
@@ -229,10 +232,13 @@ class Base
             }
 
             // Checks $where is not array
-            if (! is_array($where))
+            if (! is_array($where)) {
                 $where = array(
                     $where
                 );
+            }
+
+            // Process clauses
             foreach ($where as $id => $w) {
 
                 // Checks $where is not string
@@ -476,10 +482,11 @@ class Base
             } elseif (is_array($this->key)) {
 
                 // Verifica se é uma chave simples com cast
+                // @todo, is this right?
                 if (count($this->key) == 1) {
-                    $where = array($this->getKey(true)=>$where);
+                    $where = array($this->getKey()=>$where);
 
-                    // Não é possível acessar um registro com chave multipla usando apenas uma delas
+                // Não é possível acessar um registro com chave multipla usando apenas uma delas
                 } else {
                     throw new \Exception('Não é possível acessar chaves múltiplas informando apenas uma em ' . get_class($this) . '::fetchRow()');
                 }

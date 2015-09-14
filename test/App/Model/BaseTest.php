@@ -103,7 +103,7 @@ class BaseTest extends BaseTestCase
     protected function tearDown()
     {
         parent::tearDown();
-        $this->dropTables();
+        $this->dropTables()->closeAdapterConnection();
     }
 
     /**
@@ -322,7 +322,7 @@ class BaseTest extends BaseTestCase
         $paginator = $paginator->toJson();
         $fetchAll = $this->getBase()->setUsePaginator(false)->fetchAll();
         $this->assertNotEquals(json_encode($this->defaultValues), $paginator);
-        $this->assertEquals(json_encode($fetchAll), $paginator);
+        $this->assertEquals(json_encode($fetchAll, JSON_FORCE_OBJECT), $paginator);
 
         // Verifica o paginator alterando o paginator
         $this->getBase()->getPaginator()->setPageRange(2)
@@ -332,7 +332,7 @@ class BaseTest extends BaseTestCase
         $paginator = $paginator->toJson();
         $this->assertNotEquals(json_encode($this->defaultValues), $paginator);
         $fetchAll = $this->getBase()->setUsePaginator(false)->fetchAll(null, null, 2);
-        $this->assertEquals(json_encode($fetchAll), $paginator);
+        $this->assertEquals(json_encode($fetchAll, JSON_FORCE_OBJECT), $paginator);
 
         // Apaga qualquer cache
         $this->assertTrue($this->getBase()->getCache()->flush(), 'apaga o cache');

@@ -50,6 +50,13 @@ class BaseTestCase extends \PHPUnit_Framework_TestCase
         return $this->adapter;
     }
 
+    public function closeAdapterConnection()
+    {
+        if (isset($this->adapter)) {
+            $this->adapter->getDriver()->getConnection()->disconnect();
+        }
+    }
+
     /**
      *
      * @return SetupTest

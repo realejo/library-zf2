@@ -63,17 +63,17 @@ class BaseTestCaseTest extends \PHPUnit_Framework_TestCase
     public function testTestSetupMysql ()
     {
         $tables = array('album');
-        $this->assertInstanceOf('BaseTestCase', $this->BaseTestCase->setTables($tables));
+        $this->assertInstanceOf('\RealejoTest\BaseTestCase', $this->BaseTestCase->setTables($tables));
         $this->assertEquals($tables, $this->BaseTestCase->getTables());
 
         $dbTest = $this->BaseTestCase->createTables();
-        $this->assertInstanceOf('BaseTestCase', $dbTest);
+        $this->assertInstanceOf('\RealejoTest\BaseTestCase', $dbTest);
 
         $dbTest = $this->BaseTestCase->dropTables();
-        $this->assertInstanceOf('BaseTestCase', $dbTest);
+        $this->assertInstanceOf('\RealejoTest\BaseTestCase', $dbTest);
 
         $dbTest = $this->BaseTestCase->createTables()->dropTables();
-        $this->assertInstanceOf('BaseTestCase', $dbTest);
+        $this->assertInstanceOf('\RealejoTest\BaseTestCase', $dbTest);
     }
 
     public function testClearApplicationData()

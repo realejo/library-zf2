@@ -64,9 +64,10 @@ class Db extends Base
         $this->getTableGateway()->insert($set);
 
         // Recupera a chave gerada do registro
-        if (is_array($this->key)) {
+        if (is_array($this->getKey())) {
+            $rightKeys = $this->_checkDeprecatedInverson($this->getKey());
             $key = array();
-            foreach ($this->key as $k) {
+            foreach ($rightKeys as $k) {
                 if (isset($set[$k])) {
                     $key[$k] = $set[$k];
                 } else {
@@ -75,8 +76,8 @@ class Db extends Base
                 }
             }
 
-        } elseif (isset($set[$this->key])) {
-            $key = $set[$this->key];
+        } elseif (isset($set[$this->getKey()])) {
+            $key = $set[$this->getKey()];
         }
 
         if (empty($key)) {
@@ -172,7 +173,7 @@ class Db extends Base
      */
     public function delete($key)
     {
-        if (! is_numeric($key) || empty($key)) {
+        if ( (!is_numeric($key) && !is_array($key) ) || empty($key)) {
             throw new \Exception("O código <b>'$key'</b> inválido em " . get_class($this) . "::delete()");
         }
 
@@ -226,65 +227,107 @@ class Db extends Base
     {
         if ($key instanceof \Zend\Db\Sql\Expression || $key instanceof \Zend\Db\Sql\Predicate\PredicateInterface) {
             return $key;
+        }
 
-        } elseif (is_string($this->getKey()) && is_numeric($key)) {
-            return "{$this->getKey()} = $key";
+        if (is_string($this->getKey()) && is_numeric($key)) {
+            return $this->_getKeyWhereTyped($this->getKey(), $key, self::KEY_INTEGER);
+        }
 
-        } elseif (is_string($this->getKey()) && is_string($key)) {
-            return "{$this->getKey()} = '$key'";
+        if (is_string($this->getKey()) && is_string($key)) {
+            return $this->_getKeyWhereTyped($this->getKey(), $key, self::KEY_STRING);
+        }
 
-        } elseif (is_array($this->getKey())) {
-            $where    = array();
-            $usedKeys = array();
+        if (is_string($this->getKey()) && ($key instanceof \DateTime)) {
+            return $this->_getKeyWhereTyped($this->getKey(), $key, self::KEY_DATETIME);
+        }
 
-            // Verifica as chaves definidas
-            foreach ($this->getKey() as $type=>$definedKey) {
-
-                // Verifica se é uma chave única com cast
-                if (count($this->getKey()) === 1 && !is_array($key)) {
-
-                    // Grava a chave como integer
-                    if (is_numeric($type) || $type === self::KEY_INTEGER) {
-                        $where[] = "$definedKey = $key";
-
-                    // Grava a chave como string
-                    } elseif ($type === self::KEY_STRING) {
-                        $where[] = "$definedKey = '$key'";
-                    }
-                    $usedKeys[] = $definedKey;
-                }
-
-                // Verifica se a chave definida foi informada
-                elseif (is_array($key) && isset($key[$definedKey])) {
-
-                    // Grava a chave como integer
-                    if (is_numeric($type) || $type === self::KEY_INTEGER) {
-                        $where[] = "$definedKey = {$key[$definedKey]}";
-
-                    // Grava a chave como string
-                    } elseif ($type === self::KEY_STRING) {
-                        $where[] = "$definedKey = '{$key[$definedKey]}'";
-                    }
-
-                    // Marca a chave com usada
-                    $usedKeys[] = $definedKey;
-                }
-            }
-
-            // Verifica se alguma chave foi definida
-            if (empty($where)) {
-                throw new \Exception('Nenhuma chave múltipla informada em ' . get_class($this) . '::_getWhere()');
-            }
-
-            // Verifica se todas as chaves foram usadas
-            if ($this->getUseAllKeys() === true && is_array($this->getKey()) && count($usedKeys) !== count($this->getKey())) {
-                throw new \Exception('Não é permitido usar chaves parciais ' . get_class($this) . '::_getWhere()');
-            }
-            return '(' . implode(') AND (', $where). ')';
-
-        } else {
+        if (!is_array($this->getKey())) {
             throw new \Exception('Chave mal definida em ' . get_class($this) . '::_getWhere()');
         }
+
+        $where    = array();
+        $usedKeys = array();
+
+        // check if it's old style key
+        // @deprecated used to avoid BC
+        $keys = $this->_checkDeprecatedInverson($this->getKey());
+
+        // Verifica as chaves definidas
+        foreach ($keys as $definedKey => $type) {
+
+            // Check is the $definedKey is the type
+            if (is_numeric($definedKey)) {
+                $definedKey = $type;
+                $type = false;
+            }
+
+            // Verifica se é uma chave única com cast
+            if (count($this->getKey()) === 1 && !is_array($key)) {
+                $where[] = $this->_getKeyWhereTyped($definedKey, $key, $type);
+            }
+
+            // Verifica se a chave definida foi informada
+            elseif (is_array($key) && isset($key[$definedKey])) {
+                $where[] = $this->_getKeyWhereTyped($definedKey, $key[$definedKey], $type);
+            }
+
+            // Marca a chave com usada
+            $usedKeys[] = $definedKey;
+        }
+
+        // Verifica se alguma chave foi definida
+        if (empty($where)) {
+            throw new \Exception('Nenhuma chave múltipla informada em ' . get_class($this) . '::_getWhere()');
+        }
+
+        // Verifica se todas as chaves foram usadas
+        if ($this->getUseAllKeys() === true && is_array($this->getKey()) && count($usedKeys) !== count($this->getKey())) {
+            throw new \Exception('Não é permitido usar chaves parciais ' . get_class($this) . '::_getWhere()');
+        }
+
+        return '(' . implode(') AND (', $where). ')';
+    }
+
+    /**
+     * Check if it's old style key
+     *
+     * @deprecated used to avoid BC
+     *
+     * @param array $key
+     * @return array
+     */
+    private function _checkDeprecatedInverson(array $key)
+    {
+        foreach($key as $type => $k) {
+            if ($type === self::KEY_INTEGER || $type === self::KEY_STRING) {
+                $key = array_flip($key);
+                break;
+            }
+        }
+
+        return $key;
+    }
+
+    private function _getKeyWhereTyped($name, $value, $type = false)
+    {
+        // Retorna como integer ou não definida
+        if ($type === false || $type === self::KEY_INTEGER || $type === self::KEY_FLOAT) {
+            return "$name = $value";
+
+        // Retorna como string
+        } elseif ($type === self::KEY_STRING) {
+            return "$name = '$value'";
+
+        // Retorna como date
+        } elseif ($type === self::KEY_DATE) {
+            return "$name = '{$value->format('Y-m-d')}'";
+
+        // Retorna como datetime
+        } elseif ($type === self::KEY_DATETIME) {
+            return "$name = '{$value->format('Y-m-d H:i:s')}'";
+        }
+
+        throw new \InvalidArgumentException("Type '$type' not defined at " . get_class($this) . '::_getKeyWhereTyped()');
     }
 
     /**
