@@ -643,7 +643,7 @@ class Base
                         $data .= " data-$name=\"{$row[$field]}\"";
                     }
                 }
-                $options .= "<option value=\"{$row[$this->key]}\" $data>$option</option>";
+                $options .= "<option value=\"{$row[$key]}\" $data>$option</option>";
             }
         }
 
