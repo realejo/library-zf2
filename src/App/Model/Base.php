@@ -464,47 +464,55 @@ class Base
     /**
      * Recupera um registro
      *
-     * @param mixed        $where Condições para localizar o usuário
+     * @param mixed        $where Condições para localizar o registro
      * @param array|string $order OPTIONAL Ordem a ser considerada
      *
-     * @return array|null array com os dados do usuário ou null se não localizar
+     * @return array|null array com os dados do registro ou null se não localizar
      */
     public function fetchRow($where, $order = null)
     {
-
         // Define se é a chave da tabela
         if (is_numeric($where) || is_string($where)) {
-            // Veririfica se há chave definida
+
+            // Verifica se há chave definida
             if (empty($this->key)) {
                 throw new \Exception('Chave não definida em ' . get_class($this) . '::fetchRow()');
+            }
 
-                // Verifica se é uma chave muktipla ou com cast
-            } elseif (is_array($this->key)) {
+            // Verifica se é uma chave muktipla ou com cast
+           if (is_array($this->key)) {
 
-                // Verifica se é uma chave simples com cast
-                // @todo, is this right?
-                if (count($this->key) == 1) {
-                    $where = array($this->getKey()=>$where);
+               // Não é possível acessar um registro com chave multipla usando apenas uma delas
+               if (count($this->key) != 1) {
+                   throw new \Exception('Não é possível acessar chaves múltiplas informando apenas uma em ' . get_class($this) . '::fetchRow()');
+               }
 
-                // Não é possível acessar um registro com chave multipla usando apenas uma delas
-                } else {
-                    throw new \Exception('Não é possível acessar chaves múltiplas informando apenas uma em ' . get_class($this) . '::fetchRow()');
-                }
-
+               $where = array($this->getKey(true)=>$where);
             } else {
+
                 $where = array($this->key=>$where);
             }
         }
 
-        // Recupera o usuário
+        // Recupera o registro
         $row = $this->fetchAll($where, $order, 1);
 
-        // Retorna o usuário
-        return (! is_null($row) && count($row) > 0) ? $row[0] : null;
+        // Verifica se está usando o paginator e
+        // garante que sempre vai retornar um array
+        // sem desligar o paginator
+        if ($row instanceof \Zend\Paginator\Paginator) {
+            if ($row->count() > 0) {
+                return (array) $row->getCurrentItems()->current();
+            }
+            return null;
+        }
+
+        // Retorna o registro encontrado
+        return (!empty($row)) ? $row[0] : null;
     }
 
     /**
-     * Retorna um array associado com os usuários com a chave sendo o código deles
+     * Retorna um array associado com os registros com a chave do banco de dados sendo o chave do array
      *
      * @param mixed     $where  OPTIONAL Condições SQL
      * @param array|int $order  OPTIONAL Ordem dos registros
