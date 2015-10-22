@@ -534,6 +534,15 @@ class Base
         // Associa pela chave da tabela
         $fetchAssoc = array();
         $key = $this->getKey(true);
+
+        // Verifica se a chave é um array
+        if (is_array($key)) {
+
+            // Rercupera a promeira chave do array
+            $keys = array_keys($key);
+            $key  = $keys[0];
+        }
+
         foreach ($fetchAll as $row) {
             $fetchAssoc[$row[$key]] = $row;
         }
