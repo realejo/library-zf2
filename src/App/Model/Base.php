@@ -487,7 +487,7 @@ class Base
                    throw new \Exception('Não é possível acessar chaves múltiplas informando apenas uma em ' . get_class($this) . '::fetchRow()');
                }
 
-               $where = array($this->key[key($this->key)]=>$where);
+               $where = array(key($this->getKey())=>$where);
             } else {
 
                 $where = array($this->key=>$where);
