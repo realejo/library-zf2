@@ -402,16 +402,21 @@ class Base
 
             // Recupera a clausula where dos ExtraFields
             $extraFields = null;
-            if (isset($where['extra-fields'])) {
-                $extraFields = $where['extra-fields'];
-                unset($where['extra-fields']);
-            }
 
-            /**
-             *
-             * @var \Zend\Db\Sql\Select
-             */
-            $select = $this->getSelect($where, $order, $count, $offset);
+            if ($where instanceof \Zend\Db\Sql\Select) {
+                $select = $where;
+            } else {
+                if (isset($where['extra-fields'])) {
+                    $extraFields = $where['extra-fields'];
+                    unset($where['extra-fields']);
+                }
+
+                /**
+                 *
+                 * @var \Zend\Db\Sql\Select
+                 */
+                $select = $this->getSelect($where, $order, $count, $offset);
+            }
 
             // Verifica se deve usar o Paginator
             if ($this->getUsePaginator()) {
