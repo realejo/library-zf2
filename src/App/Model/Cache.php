@@ -39,7 +39,8 @@ class Cache
                                  'name' => 'filesystem',
                                  'options' => array(
                                      'cache_dir' => $path,
-                                     'namespace' => self::getNamespace($class)
+                                     'namespace' => self::getNamespace($class),
+                                     'dir_level' => 0,
                                  ),
                              ),
                              'plugins' => array(
@@ -76,7 +77,7 @@ class Cache
      static public function clean()
      {
          // Apaga o cache
-         self::getFrontend()->clean();
+         self::getFrontend()->flush();
      }
 
      /**
