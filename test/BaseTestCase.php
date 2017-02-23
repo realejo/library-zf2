@@ -13,7 +13,7 @@ use Zend\Db\Adapter\Adapter;
 class BaseTestCase extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var Zend\Db\Adapter\Adapter
+     * @var \Zend\Db\Adapter\Adapter
      */
     protected $adapter = null;
 
@@ -38,7 +38,7 @@ class BaseTestCase extends \PHPUnit_Framework_TestCase
     {
         if (!isset($this->adapter)) {
 
-            // Receupera as configurações do banco de dados
+            // Recupera as configurações do banco de dados
             $config = TEST_ROOT . '/configs/db.php';
             if (!file_exists($config)) {
                 $this->fail("Arquivo de configuração do banco de dados $config não encontrado.");
@@ -57,10 +57,6 @@ class BaseTestCase extends \PHPUnit_Framework_TestCase
         }
     }
 
-    /**
-     *
-     * @return SetupTest
-     */
     public function createTables($tables = null)
     {
         if (empty($tables)) {
@@ -81,9 +77,6 @@ class BaseTestCase extends \PHPUnit_Framework_TestCase
         return $this;
     }
 
-    /**
-     * @return SetupTest
-     */
     public function dropTables($tables = null)
     {
         if (empty($tables)) {

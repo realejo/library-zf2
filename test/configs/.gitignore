@@ -1,4 +1,4 @@
 # ignora tudo menos o especificado abaixo
-*
+*.php
 !.gitignore
-!db.dist.php
+

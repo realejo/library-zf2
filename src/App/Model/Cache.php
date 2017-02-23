@@ -80,11 +80,11 @@ class Cache
          self::getFrontend()->flush();
      }
 
-     /**
-      * Retorna a pasta raiz de todos os caches
-      *
-      * @return string
-      */
+    /**
+     * Retorna a pasta raiz de todos os caches
+     * @return string
+     * @throws \Exception
+     */
      static public function getCacheRoot()
      {
          // Verifica se a pasta de cache existe
