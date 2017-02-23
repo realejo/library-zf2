@@ -29,6 +29,10 @@ before_install:
   - composer self-update
   - if [[ $EXECUTE_TEST_COVERALLS == 'true' ]]; then composer require --dev --no-update satooshi/php-coveralls ; fi
 
+
+before_script:
+  - echo '<?php return ["driver" => "Mysqli","hostname" => "127.0.0.1","database" => "test","username" => "root", "password" => "","options" => ["buffer_results" => true]];' >> ~/test/configs/db.php
+
 install:
   - travis_retry composer install --no-interaction --ignore-platform-reqs
 
