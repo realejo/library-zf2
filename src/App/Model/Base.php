@@ -9,11 +9,13 @@
  */
 namespace Realejo\App\Model;
 
+use Realejo\App\Loader\Loader;
 use Zend\Db\TableGateway\Feature\GlobalAdapterFeature;
 use Zend\Db\Adapter\AdapterInterface;
 use Zend\Db\TableGateway\TableGateway;
 use Zend\Paginator\Adapter\DbSelect;
-use Zend\Paginator\Paginator;
+use Zend\Paginator\Paginator as ZendPaginator;
+use Zend\Db\Sql;
 
 class Base
 {
@@ -25,27 +27,33 @@ class Base
     const KEY_FLOAT    = 'FLOAT';
 
     /**
+     * @todo isso é realmente necessário?!
+     * @var array
+     */
+    protected $where;
+
+    /**
      *
-     * @var Zend\Db\TableGateway\TableGateway
+     * @var TableGateway
      */
     private $_tableGateway;
 
     /**
      *
-     * @var Zend\Db\TableGateway\AdapterInterface
+     * @var AdapterInterface
      */
     private $_dbAdapter;
 
     /**
      *
-     * @var \Realejo\App\Loader\Loader
+     * @var Loader
      */
     private $_loader;
 
     /**
      * Não pode ser usado dentro do Loader pois cada classe tem configurações diferentes
      *
-     * @var \Realejo\App\Model\Paginator
+     * @var Paginator
      */
     private $_paginator;
 
@@ -122,12 +130,12 @@ class Base
     /**
      * Se o nome da tabela e a chave não estiverem hardcoded é preciso informar
      *
-     * @param string $table     OPCIONAL. Nome da tabela
-     * @param string $key       OPCIONAL. Chave da tabela
-     * @param string $dbAdapter OPCIONAL .Adapter a ser usado. Se não informado será usado o padrão
+     * @param string $table               OPCIONAL. Nome da tabela
+     * @param string $key                 OPCIONAL. Chave da tabela
+     * @param AdapterInterface $dbAdapter OPCIONAL. Adapter a ser usado. Se não informado será usado o padrão
      * @throws \Exception
      */
-    public function __construct($table = null, $key = null, $dbAdapter = null)
+    public function __construct($table = null, $key = null, AdapterInterface $dbAdapter = null)
     {
         // Verifica o nome da tabela
         if (empty($table) && !is_string($table)) {
@@ -152,34 +160,38 @@ class Base
         $this->table = $table;
 
         // Define o adapter padrão
-        if ( !empty($dbAdapter) ) {
-            if ($dbAdapter instanceof AdapterInterface) {
-                $this->_dbAdapter = $dbAdapter;
-            } else {
-                throw new \Exception('Adapter deve ser Zend\Db\Adapter\AdapterInterface');
-            }
+        if (!empty($dbAdapter)) {
+            $this->setAdapter($dbAdapter);
         }
     }
 
     /**
-     * @return \Realejo\App\Loader\Loader
+     * @return Loader
      */
     public function getLoader()
     {
         if (! isset($this->_loader)) {
-            $this->setLoader(new \Realejo\App\Loader\Loader());
+            $this->setLoader(new Loader());
         }
 
         return $this->_loader;
     }
 
-    public function setLoader($loader)
+    /**
+     * @param Loader $loader
+     *
+     * @return $this
+     */
+    public function setLoader(Loader $loader)
     {
         $this->_loader = $loader;
+
+        return $this;
     }
 
     /**
      * @return TableGateway
+     * @throws \Exception
      */
     public function getTableGateway()
     {
@@ -192,18 +204,9 @@ class Base
             throw new \Exception('Tabela não definida em ' . get_class($this) . '::getTable()');
         }
 
-        // Define o adapter padrão
-        if (empty($this->_dbAdapter)) {
-            $this->_dbAdapter = GlobalAdapterFeature::getStaticAdapter();
-        }
+        $this->_tableGateway = new TableGateway($this->table, $this->getAdapter());
 
-        // Verifica se tem adapter válido
-        if (! ($this->_dbAdapter instanceof AdapterInterface)) {
-            throw new \Exception("Adapter dever ser uma instancia de AdapterInterface");
-        }
-        $this->_tableGateway = new TableGateway($this->table, $this->_dbAdapter);
-
-        // retorna o tabela
+        // retorna o TableGateway
         return $this->_tableGateway;
     }
 
@@ -211,8 +214,8 @@ class Base
      * Return the where clause
      *
      * @param string|array $where OPTIONAL Consulta SQL
-     *
      * @return array null
+     * @throws \Exception
      */
     public function getWhere($where = null)
     {
@@ -243,7 +246,7 @@ class Base
 
                 // Checks $where is not string
                 //@todo deveria ser Expression ou PredicateInterface
-                if ($w instanceof \Zend\Db\Sql\Expression || $w instanceof \Zend\Db\Sql\Predicate\PredicateInterface) {
+                if ($w instanceof Sql\Expression || $w instanceof Sql\Predicate\PredicateInterface) {
                     $this->where[] = $w;
 
                 // Checks is deleted
@@ -309,13 +312,12 @@ class Base
      * @param int       $count  OPTIONAL Limite de registros
      * @param int       $offset OPTIONAL Offset
      *
-     * @return Zend_Db_Table_Select
+     * @return Sql\Select
      */
     public function getSelect($where = null, $order = null, $count = null, $offset = null)
     {
         /**
-         *
-         * @var \Zend\Db\Sql\Select
+         * @var Sql\Select
          */
         $select = $this->getSQLSelect();
 
@@ -348,9 +350,9 @@ class Base
 
     /**
      * Retorna o Select básico do model
-     * Sobrescreva este método para inlcuir os joins
+     * Sobrescreva este método para incluir os joins
      *
-     * @return \Zend\Db\Sql\Select
+     * @return Sql\Select
      */
     public function getSQLSelect()
     {
@@ -387,7 +389,7 @@ class Base
     public function fetchAll($where = null, $order = null, $count = null, $offset = null)
     {
         // Cria a assinatura da consulta
-        if ($where instanceof \Zend\Db\Sql\Select) {
+        if ($where instanceof Sql\Select) {
             $md5 = md5($where->getSqlString());
         } else {
             $md5 = md5(var_export($where, true) . var_export($order, true) . var_export($count, true) . var_export($offset, true) . var_export($this->getShowDeleted(), true) . var_export($this->getUseDeleted(), true));
@@ -403,7 +405,7 @@ class Base
             // Recupera a clausula where dos ExtraFields
             $extraFields = null;
 
-            if ($where instanceof \Zend\Db\Sql\Select) {
+            if ($where instanceof Sql\Select) {
                 $select = $where;
             } else {
                 if (isset($where['extra-fields'])) {
@@ -413,7 +415,7 @@ class Base
 
                 /**
                  *
-                 * @var \Zend\Db\Sql\Select
+                 * @var Sql\Select
                  */
                 $select = $this->getSelect($where, $order, $count, $offset);
             }
@@ -427,7 +429,7 @@ class Base
                                         // the adapter to run it against
                                         $this->getTableGateway()->getAdapter()
                                     );
-                $fetchAll = new Paginator($paginatorAdapter);
+                $fetchAll = new ZendPaginator($paginatorAdapter);
 
                 // Verifica se deve usar o cache
                 if ($this->getUseCache()) {
@@ -484,7 +486,7 @@ class Base
                 throw new \Exception('Chave não definida em ' . get_class($this) . '::fetchRow()');
             }
 
-            // Verifica se é uma chave muktipla ou com cast
+            // Verifica se é uma chave multipla ou com cast
            if (is_array($this->key)) {
 
                // Não é possível acessar um registro com chave multipla usando apenas uma delas
@@ -505,7 +507,7 @@ class Base
         // Verifica se está usando o paginator e
         // garante que sempre vai retornar um array
         // sem desligar o paginator
-        if ($row instanceof \Zend\Paginator\Paginator) {
+        if ($row instanceof ZendPaginator) {
             if ($row->count() > 0) {
                 return (array) $row->getCurrentItems()->current();
             }
@@ -538,12 +540,12 @@ class Base
 
         // Associa pela chave da tabela
         $fetchAssoc = array();
-        $key = $this->getKey(true);
+        $key = $this->getKey();
 
         // Verifica se a chave é um array
         if (is_array($key)) {
 
-            // Rercupera a promeira chave do array
+            // Recupera a primeira chave do array
             $keys = array_keys($key);
             $key  = $keys[0];
         }
@@ -575,7 +577,7 @@ class Base
         $select = $this->getSelect($where);
 
         // Altera as colunas
-        $select->reset('columns')->columns(array('total'=>new \Zend\Db\Sql\Expression('count(*)')));
+        $select->reset('columns')->columns(['total' => new Sql\Expression('count(*)')]);
 
         $fetchRow = $this->getTableGateway()->selectWith($select);
 
@@ -604,7 +606,7 @@ class Base
      * Retorna o HTML de um <select> apra usar em formulários
      *
      * @param string $nome        Nome/ID a ser usado no <select>
-     * @param string $selecionado Valor pré seleiconado
+     * @param string $selecionado Valor pré selecionado
      * @param string $opts        Opções adicionais
      *
      * As opções adicionais podem ser
@@ -630,14 +632,14 @@ class Base
         // Verifica se deve manter um em branco
         $showEmpty = (isset($opts['show-empty']) && $opts['show-empty'] === true);
 
-        // Define ao plcaeholder aser usado
+        // Define ao placeholder aser usado
         $placeholder = (isset($opts['placeholder'])) ? $opts['placeholder'] : '';
 
         // Define a chave a ser usada
         if (isset($opts['key']) && !empty($opts['key']) && is_string($opts['key'])) {
             $key = $opts['key'];
         } else {
-            $key = $this->getKey(true);
+            $key = $this->getKey();
         }
 
         // Monta as opções
@@ -702,7 +704,7 @@ class Base
     public function getCache()
     {
         if (! isset($this->_cache)) {
-            $this->_cache = new \Realejo\App\Model\Cache();
+            $this->_cache = new Cache();
         }
         return $this->_cache->getFrontend(get_class($this));
     }
@@ -711,6 +713,7 @@ class Base
      * Define se deve usar o cache
      *
      * @param boolean $useCache
+     * @return $this
      */
     public function setUseCache($useCache)
     {
@@ -739,12 +742,12 @@ class Base
     /**
      * Retorna o frontend para gravar o cache
      *
-     * @return \Realejo\App\Model\Paginator
+     * @return Paginator
      */
     public function getPaginator()
     {
         if (! isset($this->_paginator)) {
-            $this->_paginator = new \Realejo\App\Model\Paginator();
+            $this->_paginator = new Paginator();
         }
 
         $this->usePaginator = true;
@@ -791,7 +794,7 @@ class Base
 
     /**
      *
-     * @return string
+     * @return string|array
      */
     public function getKey()
     {
@@ -829,7 +832,7 @@ class Base
      *
      * @param string $order
      *
-     * @return \Realejo\App\Model\Base
+     * @return Base
      */
     public function setOrder($order)
     {
@@ -842,7 +845,7 @@ class Base
      *
      * @param string $htmlSelectOption
      *
-     * @return \Realejo\App\Model\Base
+     * @return Base
      */
     public function setHtmlSelectOption($htmlSelectOption)
     {
@@ -854,7 +857,7 @@ class Base
      *
      * @param array|string $htmlSelectOptionData
      *
-     * @return \Realejo\App\Model\Base
+     * @return Base
      */
     public function setHtmlSelectOptionData($htmlSelectOptionData)
     {
@@ -877,7 +880,7 @@ class Base
      *
      * @param boolean $useDeleted
      *
-     * @return  Realejo\App\Model\Base
+     * @return Base
      */
     public function setUseDeleted($useDeleted)
     {
@@ -902,13 +905,37 @@ class Base
      *
      * @param boolean $showDeleted
      *
-     * @return  Realejo\App\Model\Base
+     * @return Base
      */
     public function setShowDeleted($showDeleted)
     {
         $this->showDeleted = $showDeleted;
 
         // Mantem a cadeia
+        return $this;
+    }
+
+    /**
+     * @return AdapterInterface
+     */
+    public function getAdapter()
+    {
+        if (null === $this->_dbAdapter) {
+            $this->_dbAdapter = GlobalAdapterFeature::getStaticAdapter();
+        }
+
+        return $this->_dbAdapter;
+    }
+
+    /**
+     * @param AdapterInterface $dbAdapter
+     *
+     * @return Base
+     */
+    public function setAdapter(AdapterInterface $dbAdapter)
+    {
+        $this->_dbAdapter = $dbAdapter;
+
         return $this;
     }
 }
