@@ -137,7 +137,8 @@ class BaseTest extends BaseTestCase
 
     /**
      * Constructs the test case com adapter inválido. Ele deve ser Zend\Db\Adapter\Adapter\AdapterInterface
-     * @expectedException \Exception
+     * @requires PHP 7
+     * @expectedException \TypeError
      */
     public function testConstructComAdapterInvalido()
     {
