@@ -32,9 +32,9 @@ class BaseTest extends BaseTestCase
     private $Base;
 
     /**
-     * @var Zend\Db\Adapter\Adapter
+     * @var Adapter
      */
-    protected $pdoAdapter = null;
+    protected $zendAdapter = null;
 
     protected $defaultValues = array(
         array(
@@ -65,7 +65,7 @@ class BaseTest extends BaseTestCase
 
     /**
      *
-     * @return \Realejo\Db\BaseTest
+     * @return BaseTest
      */
     public function insertDefaultRows()
     {
@@ -78,7 +78,7 @@ class BaseTest extends BaseTestCase
 
     /**
      *
-     * @return \Realejo\Db\BaseTest
+     * @return BaseTest
      */
     public function truncateTable()
     {
@@ -119,7 +119,7 @@ class BaseTest extends BaseTestCase
 
     /**
      * Construct sem nome da tabela
-     * @expectedException Exception
+     * @expectedException \Exception
      */
     public function testConstructSemTableName()
     {
@@ -128,7 +128,7 @@ class BaseTest extends BaseTestCase
 
     /**
      * Construct sem nome da chave
-     * @expectedException Exception
+     * @expectedException \Exception
      */
     public function testConstructSemKeyName()
     {
@@ -136,12 +136,12 @@ class BaseTest extends BaseTestCase
     }
 
     /**
-     * Constructs the test case copm adapter inválido. Ele deve ser Zend\Db\Adapter\Adapter\AdapterInterface
-     * @expectedException Exception
+     * Constructs the test case com adapter inválido. Ele deve ser Zend\Db\Adapter\Adapter\AdapterInterface
+     * @expectedException \Exception
      */
     public function testConstructComAdapterInvalido()
     {
-        $Base = new Base($this->tableName, $this->tableKeyName, new \PDO('sqlite::memory:'));
+        new Base($this->tableName, $this->tableKeyName, new \PDO('sqlite::memory:'));
     }
 
     /**
@@ -156,7 +156,7 @@ class BaseTest extends BaseTestCase
     /**
      * teste o adapter
      */
-    public function testAdatper()
+    public function testAdapter()
     {
         $this->assertInstanceOf('\Zend\Db\Adapter\Adapter', $this->getAdapter());
     }
@@ -415,18 +415,6 @@ class BaseTest extends BaseTestCase
         $this->assertEquals($this->defaultValues[1], $albuns[2]);
         $this->assertEquals($this->defaultValues[2], $albuns[3]);
         $this->assertEquals($this->defaultValues[3], $albuns[4]);
-    }
-
-
-    /**
-     * Tests Base->getFetchAllExtraFields()
-     */
-    public function testGetFetchAllExtraFields()
-    {
-        // TODO Auto-generated BaseTest->testGetLoader()
-        $this->markTestIncomplete("getLoader test not implemented");
-
-        $this->Base->getFetchAllExtraFields(/* parameters */);
     }
 
     /**
