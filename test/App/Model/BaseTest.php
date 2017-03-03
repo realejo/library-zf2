@@ -136,16 +136,6 @@ class BaseTest extends BaseTestCase
     }
 
     /**
-     * Constructs the test case com adapter inválido. Ele deve ser Zend\Db\Adapter\Adapter\AdapterInterface
-     * @requires PHP 7
-     * @expectedException \TypeError
-     */
-    public function testConstructComAdapterInvalido()
-    {
-        new Base($this->tableName, $this->tableKeyName, new \PDO('sqlite::memory:'));
-    }
-
-    /**
      * test a criação com a conexão local de testes
      */
     public function testCreateBase()

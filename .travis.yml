@@ -1,44 +1,15 @@
-sudo: false
-
 language: php
 
-branches:
-  only:
-    - develop
-    - master
+php:
+  - 5.6
+  - 7.0
+  - 7.1
 
-cache:
-  directories:
-    - $HOME/.composer/cache
-
-matrix:
-  fast_finish: true
-  include:
-    - php: 5.6
-      env:
-        - EXECUTE_TEST_COVERALLS=true
-    - php: 7
-    - php: 7.1
-  allow_failures:
-    - php: 7.1
-
-before_install:
-  - mysql -e 'CREATE DATABASE test;'
-  - if [[ $EXECUTE_TEST_COVERALLS != 'true' ]]; then phpenv config-rm xdebug.ini || return 0 ; fi
-  - composer self-update
-  - if [[ $EXECUTE_TEST_COVERALLS == 'true' ]]; then composer require --dev --no-update satooshi/php-coveralls ; fi
-
+env:
+  - TRAVIS=true
 
 before_script:
-  - echo '<?php return ["driver" => "Mysqli","hostname" => "127.0.0.1","database" => "test","username" => "root", "password" => "","options" => ["buffer_results" => true]];' >> ./test/configs/db.php
+  - composer install
+  - mysql -e 'create database IF NOT EXISTS test';
 
-install:
-  - travis_retry composer install --no-interaction --ignore-platform-reqs
-
-script:
-  - if [[ $EXECUTE_TEST_COVERALLS == 'true' ]]; then ./vendor/bin/phpunit --coverage-clover clover.xml ; fi
-  - if [[ $EXECUTE_TEST_COVERALLS != 'true' ]]; then ./vendor/bin/phpunit ; fi
-  - if [[ $EXECUTE_CS_CHECK == 'true' ]]; then ./vendor/bin/php-cs-fixer fix -v --diff --dry-run ; fi
-
-after_script:
-  - if [[ $EXECUTE_TEST_COVERALLS == 'true' ]]; then ./vendor/bin/coveralls ; fi
+script: composer test
