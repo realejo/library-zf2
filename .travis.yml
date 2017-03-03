@@ -8,6 +8,9 @@ php:
 env:
   - TRAVIS=true
 
+services:
+  - mysql
+
 before_script:
   - composer install
   - mysql -e 'create database IF NOT EXISTS test';

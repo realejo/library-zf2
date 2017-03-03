@@ -1,10 +1,11 @@
 <?php
+// Config padrão do travis
 return array(
     'driver' => 'Mysqli',
-    'hostname' => '0.0.0.0',
+    'hostname' => '127.0.0.1',
     'database' => 'test',
-    'username' => 'username',
-    'password' => 'password',
+    'username' => 'root',
+    'password' => '',
     'options' => array(
         'buffer_results' => true
     )
