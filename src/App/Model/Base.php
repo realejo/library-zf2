@@ -390,9 +390,15 @@ class Base
     {
         // Cria a assinatura da consulta
         if ($where instanceof Sql\Select) {
-            $md5 = md5($where->getSqlString());
+            $md5 = md5($where->getSqlString($this->getTableGateway()->getAdapter()->getPlatform()));
         } else {
-            $md5 = md5(var_export($where, true) . var_export($order, true) . var_export($count, true) . var_export($offset, true) . var_export($this->getShowDeleted(), true) . var_export($this->getUseDeleted(), true));
+            $md5 = md5(
+                    var_export($where, true)
+                    . var_export($order, true)
+                    . var_export($count, true)
+                    . var_export($offset, true)
+                    . var_export($this->getShowDeleted(), true)
+                    . var_export($this->getUseDeleted(), true));
         }
 
         // Verifica se tem no cache
