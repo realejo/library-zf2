@@ -10,6 +10,7 @@ namespace RealejoTest\App\Model;
  */
 use Realejo\App\Model\Cache,
     RealejoTest\BaseTestCase;
+use Zend\Cache\Storage\Adapter\Filesystem;
 
 class CacheTest extends BaseTestCase
 {
@@ -140,19 +141,19 @@ class CacheTest extends BaseTestCase
     /**
      * getFrontend com nome da class
      */
-    public function testgetFrontendComClass()
+    public function testGetFrontendComClass()
     {
         $cache = Cache::getFrontend('Album');
-        $this->assertInstanceOf('Zend\Cache\Storage\Adapter\Filesystem', $cache);
+        $this->assertInstanceOf(Filesystem::class, $cache);
     }
 
     /**
      * getFrontend sem nome da class
      */
-    public function testgetFrontendSemClass()
+    public function testGetFrontendSemClass()
     {
         $cache = Cache::getFrontend(null);
-        $this->assertInstanceOf('Zend\Cache\Storage\Adapter\Filesystem', $cache);
+        $this->assertInstanceOf(Filesystem::class, $cache);
     }
 }
 

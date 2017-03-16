@@ -477,10 +477,10 @@ class Base
     /**
      * Recupera um registro
      *
-     * @param mixed        $where Condições para localizar o registro
+     * @param mixed $where Condições para localizar o registro
      * @param array|string $order OPTIONAL Ordem a ser considerada
-     *
      * @return array|null array com os dados do registro ou null se não localizar
+     * @throws \Exception
      */
     public function fetchRow($where, $order = null)
     {
@@ -710,9 +710,10 @@ class Base
     public function getCache()
     {
         if (! isset($this->_cache)) {
-            $this->_cache = new Cache();
+            $cache = new Cache();
+            $this->_cache = $cache->getFrontend(get_class($this));
         }
-        return $this->_cache->getFrontend(get_class($this));
+        return $this->_cache;
     }
 
     /**
