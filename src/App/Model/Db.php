@@ -124,6 +124,13 @@ class Db extends Base
             return false;
         }
 
+        // Converte tudo que tem array para json. Evita-se PHP_NOTICE no diff_assoc
+        foreach ($row as $field => $value) {
+            if (is_array($value)) {
+                $row[$field] = json_encode($value);
+            }
+        }
+
         // Remove os campos vazios
         foreach ($set as $field => $value) {
             if (is_string($value)) {
