@@ -10,13 +10,26 @@
 
 namespace Realejo\Utils;
 
+use Zend\Paginator\Adapter\DbSelect;
+
 class Paginator extends \Zend\Paginator\Paginator
 {
     protected function _getCacheInternalId()
     {
-        return md5(serialize([
-            spl_object_hash($this->getAdapter()),
-            $this->getItemCountPerPage()
-        ]));
+        $adapter = $this->getAdapter();
+
+        if ($adapter instanceof DbSelect) {
+            $reflection = new \ReflectionObject($adapter);
+            $property = $reflection->getProperty('select');
+            $property->setAccessible(true);
+            $select = $property->getValue($adapter);
+            return md5(
+                $reflection->getName()
+                . hash('sha512', $select->getSQLString())
+                . $this->getItemCountPerPage()
+            );
+        }
+
+        return parent::_getCacheInternalId();
     }
 }
