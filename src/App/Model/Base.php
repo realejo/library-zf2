@@ -14,7 +14,7 @@ use Zend\Db\TableGateway\Feature\GlobalAdapterFeature;
 use Zend\Db\Adapter\AdapterInterface;
 use Zend\Db\TableGateway\TableGateway;
 use Zend\Paginator\Adapter\DbSelect;
-use Zend\Paginator\Paginator as ZendPaginator;
+use Realejo\Utils\Paginator as ZendPaginator;
 use Zend\Db\Sql;
 
 class Base
