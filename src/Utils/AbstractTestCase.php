@@ -32,13 +32,6 @@ class AbstractTestCase extends \PHPUnit_Framework_TestCase
      */
     protected $tables = array();
 
-    public function __construct($tables = null)
-    {
-        if (!empty($tables) && is_array($tables)) {
-            $this->tables = $tables;
-        }
-    }
-
     /**
      * Prepares the environment before running ALL tests.
      */
