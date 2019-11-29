@@ -35,7 +35,7 @@ class AbstractTestCase extends \PHPUnit_Framework_TestCase
     /**
      * Prepares the environment before running ALL tests.
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass():void
     {
         // Apaga todo o conteúdo do ApplICATION DATA
         $oTemp = new self();
@@ -45,7 +45,7 @@ class AbstractTestCase extends \PHPUnit_Framework_TestCase
     /**
      * Reset the environment after running ALL tests.
      */
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass():void
     {
         // Apaga todo o conteúdo do ApplICATION DATA
         $oTemp = new self();
