@@ -9,9 +9,11 @@ namespace RealejoTest\App\Model;
  * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
  * @license   http://unlicense.org
  */
+
+use PHPUnit\Framework\TestCase;
 use Realejo\App\Model\Paginator;
 
-class PaginatorTest extends \PHPUnit_Framework_TestCase
+class PaginatorTest extends TestCase
 {
     /**
      *
@@ -34,7 +36,7 @@ class PaginatorTest extends \PHPUnit_Framework_TestCase
     /**
      * Prepares the environment before running a test.
      */
-    protected function setUp()
+    protected function setUp():void
     {
         parent::setUp();
     }
@@ -42,7 +44,7 @@ class PaginatorTest extends \PHPUnit_Framework_TestCase
     /**
      * Cleans up the environment after running a test.
      */
-    protected function tearDown()
+    protected function tearDown():void
     {
         parent::tearDown();
     }
@@ -50,7 +52,7 @@ class PaginatorTest extends \PHPUnit_Framework_TestCase
     /**
      * getPageRange
      */
-    public function testGetPageRange()
+    public function testGetPageRange():void
     {
         // Recupera o Page Range
         $page = $this->getPaginator()->getPageRange();
@@ -64,7 +66,7 @@ class PaginatorTest extends \PHPUnit_Framework_TestCase
     /**
      * getCurrentPageNumber
      */
-    public function testGetCurrentPageNumber()
+    public function testGetCurrentPageNumber():void
     {
         // Recupera o Current Page Number
         $page = $this->getPaginator()->getCurrentPageNumber();
@@ -78,7 +80,7 @@ class PaginatorTest extends \PHPUnit_Framework_TestCase
     /**
      * getItemCountPerPage
      */
-    public function testGetItemCountPerPage()
+    public function testGetItemCountPerPage():void
     {
         // Recupera o Item Count Per Page
         $page = $this->getPaginator()->getItemCountPerPage();
@@ -92,7 +94,7 @@ class PaginatorTest extends \PHPUnit_Framework_TestCase
     /**
      * setPageRange
      */
-    public function testSetPageRange()
+    public function testSetPageRange():void
     {
         // Recupera o Page Range
         $page = $this->getPaginator()->getPageRange();
@@ -120,7 +122,7 @@ class PaginatorTest extends \PHPUnit_Framework_TestCase
     /**
      * setCurrentPageNumber
      */
-    public function testSetCurrentPageNumber()
+    public function testSetCurrentPageNumber():void
     {
         // Recupera o Current Page Number
         $page = $this->getPaginator()->getCurrentPageNumber();
@@ -148,7 +150,7 @@ class PaginatorTest extends \PHPUnit_Framework_TestCase
     /**
      * setItemCountPerPage
      */
-    public function testSetItemCountPerPage()
+    public function testSetItemCountPerPage():void
     {
         // Recupera o Item Count Per Page
         $page = $this->getPaginator()->getItemCountPerPage();

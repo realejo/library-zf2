@@ -1,6 +1,7 @@
 <?php
 namespace RealejoTest;
 
+use PHPUnit\Framework\TestCase;
 use RealejoTest\BaseTestCase;
 
 /**
@@ -10,7 +11,7 @@ use RealejoTest\BaseTestCase;
  * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
  * @license   http://unlicense.org
  */
-class BaseTestCaseTest extends \PHPUnit_Framework_TestCase
+class BaseTestCaseTest extends TestCase
 {
     /**
      *
@@ -21,7 +22,7 @@ class BaseTestCaseTest extends \PHPUnit_Framework_TestCase
     /**
      * Prepares the environment before running a test.
      */
-    protected function setUp ()
+    protected function setUp ():void
     {
         parent::setUp();
 
@@ -33,20 +34,12 @@ class BaseTestCaseTest extends \PHPUnit_Framework_TestCase
     /**
      * Cleans up the environment after running a test.
      */
-    protected function tearDown ()
+    protected function tearDown ():void
     {
         // TODO Auto-generated DbAdapterTest::tearDown()
         $this->BaseTestCase = null;
 
         parent::tearDown();
-    }
-
-    /**
-     * Constructs the test case.
-     */
-    public function __construct ()
-    {
-        // TODO Auto-generated constructor
     }
 
     /**

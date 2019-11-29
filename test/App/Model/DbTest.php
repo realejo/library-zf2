@@ -36,7 +36,7 @@ class DbTest extends BaseTestCase
     /**
      * Prepares the environment before running a test.
      */
-    protected function setUp()
+    protected function setUp():void
     {
         parent::setUp();
         $this->dropTables()->createTables();
@@ -45,7 +45,7 @@ class DbTest extends BaseTestCase
     /**
      * Cleans up the environment after running a test.
      */
-    protected function tearDown()
+    protected function tearDown():void
     {
         parent::tearDown();
         $this->dropTables();
@@ -64,35 +64,35 @@ class DbTest extends BaseTestCase
 
     /**
      * Construct sem nome da tabela
-     * @expectedException Exception
      */
-    public function testConstructSemTableName()
+    public function testConstructSemTableName():void
     {
+        $this->expectException(\Exception::class);
         new Db(null, 'keyname');
     }
 
     /**
      * Construct sem nome da chave
-     * @expectedException Exception
      */
-    public function testConstructSemKeyName()
+    public function testConstructSemKeyName():void
     {
+        $this->expectException(\Exception::class);
         new Db('tablename', null);
     }
 
     /**
      * Verifica se tudo foi criado corretamente no MySQL
      */
-    public function testSetupMysql()
+    public function testSetupMysql():void
     {
         $this->setup();
         $this->assertTrue(true);
     }
 
     /**
-     * Tests Db->insert()
+     * Tests Db->insert():void
      */
-    public function testInsert()
+    public function testInsert():void
     {
         // Certifica que a tabela está vazia
         $this->assertNull($this->getDb()->fetchAll(), 'Verifica se há algum registro pregravado');
@@ -113,9 +113,9 @@ class DbTest extends BaseTestCase
         $this->assertEquals($row, $this->getDb()->getLastInsertSet(), 'Verifica o set do ultimo insert');
         $this->assertCount(1, $this->getDb()->fetchAll(), 'Verifica se apenas um registro foi adicionado');
 
-        $row = array_merge(array('id'=>$id), $row);
+        $row = array_merge(['id' =>$id], $row);
 
-        $this->assertEquals(array($row), $this->getDb()->fetchAll(), 'Verifica se o registro adicionado corresponde ao original pelo fetchAll()');
+        $this->assertEquals([$row], $this->getDb()->fetchAll(), 'Verifica se o registro adicionado corresponde ao original pelo fetchAll()');
         $this->assertEquals($row, $this->getDb()->fetchRow(1), 'Verifica se o registro adicionado corresponde ao original pelo fetchRow()');
 
         $row = array(
@@ -141,7 +141,7 @@ class DbTest extends BaseTestCase
         $this->assertEquals(3, $id);
         $this->assertEquals($row, $this->getDb()->getLastInsertSet(), 'Verifica se o TERCEIRO registro adicionado corresponde ao original pelo getLastInsertSet()');
 
-        $row = array_merge(array('id'=>$id), $row);
+        $row = array_merge(['id' =>$id], $row);
 
         $this->assertCount(3, $this->getDb()->fetchAll());
         $this->assertEquals($row, $this->getDb()->fetchRow(3), 'Verifica se o TERCEIRO registro adicionado corresponde ao original pelo fetchRow()');
@@ -152,9 +152,9 @@ class DbTest extends BaseTestCase
     }
 
     /**
-     * Tests Db->update()
+     * Tests Db->update():void
      */
-    public function testUpdate()
+    public function testUpdate():void
     {
         // Certifica que a tabela está vazia
         $this->assertNull($this->getDb()->fetchAll());
@@ -208,9 +208,9 @@ class DbTest extends BaseTestCase
     }
 
     /**
-     * Tests TableAdapter->delete()
+     * Tests TableAdapter->delete():void
      */
-    public function testDelete()
+    public function testDelete():void
     {
         $row = array(
             'id' => 1,

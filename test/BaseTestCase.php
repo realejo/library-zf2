@@ -8,9 +8,11 @@ namespace RealejoTest;
  * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
  * @license   http://unlicense.org
  */
+
+use PHPUnit\Framework\TestCase;
 use Zend\Db\Adapter\Adapter;
 
-class BaseTestCase extends \PHPUnit_Framework_TestCase
+class BaseTestCase extends TestCase
 {
     /**
      * @var \Zend\Db\Adapter\Adapter
@@ -23,13 +25,6 @@ class BaseTestCase extends \PHPUnit_Framework_TestCase
      * @var array
      */
     protected $tables = array();
-
-    public function __construct($tables = null)
-    {
-        if (!empty($tables) && is_array($tables)) {
-            $this->tables = $tables;
-        }
-    }
 
     /**
      * @return \Zend\Db\Adapter\Adapter

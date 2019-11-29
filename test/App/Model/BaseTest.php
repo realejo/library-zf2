@@ -1,4 +1,5 @@
 <?php
+
 namespace RealejoTest\App\Model;
 
 /**
@@ -8,21 +9,22 @@ namespace RealejoTest\App\Model;
  * @copyright Copyright (c) 2014 Realejo (http://realejo.com.br)
  * @license   http://unlicense.org
  */
-use Realejo\App\Model\Base,
-    RealejoTest\BaseTestCase,
-    Zend\Db\Adapter\Adapter;
+
+use Realejo\App\Model\Base;
+use RealejoTest\BaseTestCase;
+use Zend\Db\Adapter\Adapter;
 
 class BaseTest extends BaseTestCase
 {
     /**
      * @var string
      */
-    protected $tableName = "album";
+    protected $tableName = 'album';
 
     /**
      * @var string
      */
-    protected $tableKeyName = "id";
+    protected $tableKeyName = 'id';
 
     protected $tables = array('album');
 
@@ -36,32 +38,33 @@ class BaseTest extends BaseTestCase
      */
     protected $zendAdapter = null;
 
-    protected $defaultValues = array(
-        array(
-            'id' => 1,
-            'artist' => 'Rush',
-            'title' => 'Rush',
-            'deleted' => 0
-        ),
-        array(
-            'id' => 2,
-            'artist' => 'Rush',
-            'title' => 'Moving Pictures',
-            'deleted' => 0
-        ),
-        array(
-            'id' => 3,
-            'artist' => 'Dream Theater',
-            'title' => 'Images And Words',
-            'deleted' => 0
-        ),
-        array(
-            'id' => 4,
-            'artist' => 'Claudia Leitte',
-            'title' => 'Exttravasa',
-            'deleted' => 1
-        )
-    );
+    protected $defaultValues
+        = array(
+            array(
+                'id'      => 1,
+                'artist'  => 'Rush',
+                'title'   => 'Rush',
+                'deleted' => 0
+            ),
+            array(
+                'id'      => 2,
+                'artist'  => 'Rush',
+                'title'   => 'Moving Pictures',
+                'deleted' => 0
+            ),
+            array(
+                'id'      => 3,
+                'artist'  => 'Dream Theater',
+                'title'   => 'Images And Words',
+                'deleted' => 0
+            ),
+            array(
+                'id'      => 4,
+                'artist'  => 'Claudia Leitte',
+                'title'   => 'Exttravasa',
+                'deleted' => 1
+            )
+        );
 
     /**
      *
@@ -70,8 +73,11 @@ class BaseTest extends BaseTestCase
     public function insertDefaultRows()
     {
         foreach ($this->defaultValues as $row) {
-            $this->getAdapter()->query("INSERT into {$this->tableName}({$this->tableKeyName}, artist, title, deleted)
-                VALUES ({$row[$this->tableKeyName]}, '{$row['artist']}', '{$row['title']}', {$row['deleted']});", Adapter::QUERY_MODE_EXECUTE);
+            $this->getAdapter()->query(
+                "INSERT into {$this->tableName}({$this->tableKeyName}, artist, title, deleted)
+                VALUES ({$row[$this->tableKeyName]}, '{$row['artist']}', '{$row['title']}', {$row['deleted']});",
+                Adapter::QUERY_MODE_EXECUTE
+            );
         }
         return $this;
     }
@@ -90,7 +96,7 @@ class BaseTest extends BaseTestCase
     /**
      * Prepares the environment before running a test.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -100,7 +106,7 @@ class BaseTest extends BaseTestCase
     /**
      * Cleans up the environment after running a test.
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
         $this->dropTables()->closeAdapterConnection();
@@ -119,26 +125,26 @@ class BaseTest extends BaseTestCase
 
     /**
      * Construct sem nome da tabela
-     * @expectedException \Exception
      */
-    public function testConstructSemTableName()
+    public function testConstructSemTableName(): void
     {
+        $this->expectException(\Exception::class);
         new Base(null, $this->tableKeyName);
     }
 
     /**
      * Construct sem nome da chave
-     * @expectedException \Exception
      */
-    public function testConstructSemKeyName()
+    public function testConstructSemKeyName(): void
     {
+        $this->expectException(\Exception::class);
         new Base($this->tableName, null);
     }
 
     /**
      * test a criação com a conexão local de testes
      */
-    public function testCreateBase()
+    public function testCreateBase(): void
     {
         $Base = new Base($this->tableName, $this->tableKeyName, $this->getAdapter());
         $this->assertInstanceOf('Realejo\App\Model\Base', $Base);
@@ -147,15 +153,15 @@ class BaseTest extends BaseTestCase
     /**
      * teste o adapter
      */
-    public function testAdapter()
+    public function testAdapter(): void
     {
         $this->assertInstanceOf('\Zend\Db\Adapter\Adapter', $this->getAdapter());
     }
 
     /**
-     * Tests Base->getOrder()
+     * Tests Base->getOrder():void
      */
-    public function testOrder()
+    public function testOrder(): void
     {
         // Verifica a ordem padrão
         $this->assertNull($this->getBase()->getOrder());
@@ -175,11 +181,10 @@ class BaseTest extends BaseTestCase
 
 
     /**
-     * Tests Base->getWhere()
+     * Tests Base->getWhere():void
      */
-    public function testWhere()
+    public function testWhere(): void
     {
-
         // Marca pra usar o campo deleted
         $this->getBase()->setUseDeleted(true);
 
@@ -190,38 +195,55 @@ class BaseTest extends BaseTestCase
         $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getBase()->getWhere(''));
         $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getBase()->getWhere(0));
 
-        $this->assertEquals(array("{$this->tableName}.deleted=1"), $this->getBase()->getWhere(array('deleted'=>true)));
-        $this->assertEquals(array("{$this->tableName}.deleted=1"), $this->getBase()->getWhere(array('deleted'=>1)));
-        $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getBase()->getWhere(array('deleted'=>false)));
-        $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getBase()->getWhere(array('deleted'=>0)));
+        $this->assertEquals(
+            array("{$this->tableName}.deleted=1"),
+            $this->getBase()->getWhere(array('deleted' => true))
+        );
+        $this->assertEquals(array("{$this->tableName}.deleted=1"), $this->getBase()->getWhere(array('deleted' => 1)));
+        $this->assertEquals(
+            array("{$this->tableName}.deleted=0"),
+            $this->getBase()->getWhere(array('deleted' => false))
+        );
+        $this->assertEquals(array("{$this->tableName}.deleted=0"), $this->getBase()->getWhere(array('deleted' => 0)));
 
-        $this->assertEquals(array(
-            "outratabela.campo=0",
-            "{$this->tableName}.deleted=0"
-        ), $this->getBase()->getWhere(array('outratabela.campo'=>0)));
+        $this->assertEquals(
+            array(
+                "outratabela.campo=0",
+                "{$this->tableName}.deleted=0"
+            ),
+            $this->getBase()->getWhere(array('outratabela.campo' => 0))
+        );
 
-        $this->assertEquals(array(
+        $this->assertEquals(
+            array(
                 "outratabela.deleted=1",
                 "{$this->tableName}.deleted=0"
-        ), $this->getBase()->getWhere(array('outratabela.deleted'=>1)));
+            ),
+            $this->getBase()->getWhere(array('outratabela.deleted' => 1))
+        );
 
-        $this->assertEquals(array(
-                            "{$this->tableName}.{$this->tableKeyName}=1",
-                            "{$this->tableName}.deleted=0"
-        ), $this->getBase()->getWhere(array($this->tableKeyName=>1)));
+        $this->assertEquals(
+            array(
+                "{$this->tableName}.{$this->tableKeyName}=1",
+                "{$this->tableName}.deleted=0"
+            ),
+            $this->getBase()->getWhere(array($this->tableKeyName => 1))
+        );
 
         $dbExpression = new \Zend\Db\Sql\Expression('now()');
-        $this->assertEquals(array(
-            $dbExpression,
+        $this->assertEquals(
+            array(
+                $dbExpression,
                 "{$this->tableName}.deleted=0"
-        ), $this->getBase()->getWhere(array($dbExpression)));
-
+            ),
+            $this->getBase()->getWhere(array($dbExpression))
+        );
     }
 
     /**
      * Tests campo deleted
      */
-    public function testDeletedField()
+    public function testDeletedField(): void
     {
         // Verifica se deve remover o registro
         $this->assertFalse($this->getBase()->getUseDeleted());
@@ -237,41 +259,56 @@ class BaseTest extends BaseTestCase
     }
 
     /**
-     * Tests Base->getSQlString()
+     * Tests Base->getSQlString():void
      */
-    public function testGetSQlString()
+    public function testGetSQlString(): void
     {
         // Verfiica o padrão não usar o campo deleted e não mostrar os removidos
-        $this->assertEquals('SELECT `album`.* FROM `album`', $this->getBase()->getSQlString(), 'showDeleted=false, useDeleted=false');
+        $this->assertEquals(
+            'SELECT `album`.* FROM `album`',
+            $this->getBase()->getSQlString(),
+            'showDeleted=false, useDeleted=false'
+        );
 
         // Marca para usar o campo deleted
         $this->getBase()->setUseDeleted(true);
-        $this->assertEquals('SELECT `album`.* FROM `album` WHERE album.deleted=0', $this->getBase()->getSQlString(), 'showDeleted=false, useDeleted=true');
+        $this->assertEquals(
+            'SELECT `album`.* FROM `album` WHERE album.deleted=0',
+            $this->getBase()->getSQlString(),
+            'showDeleted=false, useDeleted=true'
+        );
 
         // Marca para não usar o campo deleted
         $this->getBase()->setUseDeleted(false);
 
-        $this->assertEquals('SELECT `album`.* FROM `album` WHERE album.id=1234', $this->getBase()->getSQlString(array('id'=>1234)));
-        $this->assertEquals("SELECT `album`.* FROM `album` WHERE album.texto='textotextotexto'", $this->getBase()->getSQlString(array('texto'=>'textotextotexto')));
-
+        $this->assertEquals(
+            'SELECT `album`.* FROM `album` WHERE album.id=1234',
+            $this->getBase()->getSQlString(array('id' => 1234))
+        );
+        $this->assertEquals(
+            "SELECT `album`.* FROM `album` WHERE album.texto='textotextotexto'",
+            $this->getBase()->getSQlString(array('texto' => 'textotextotexto'))
+        );
     }
 
     /**
-     * Tests Base->testGetSQlSelect()
+     * Tests Base->testGetSQlSelect():void
      */
-    public function testGetSQlSelect()
+    public function testGetSQlSelect(): void
     {
         $select = $this->getBase()->getSQlSelect();
         $this->assertInstanceOf('Zend\Db\Sql\Select', $select);
-        $this->assertEquals($select->getSqlString($this->getAdapter()->getPlatform()), $this->getBase()->getSQlString());
+        $this->assertEquals(
+            $select->getSqlString($this->getAdapter()->getPlatform()),
+            $this->getBase()->getSQlString()
+        );
     }
 
     /**
-     * Tests Base->fetchAll()
+     * Tests Base->fetchAll():void
      */
-    public function testFetchAll()
+    public function testFetchAll(): void
     {
-
         // O padrão é não usar o campo deleted
         $albuns = $this->getBase()->fetchAll();
         $this->assertCount(4, $albuns, 'showDeleted=false, useDeleted=false');
@@ -305,8 +342,8 @@ class BaseTest extends BaseTestCase
         $this->assertCount(3, $this->getBase()->fetchAll());
 
         // Verifica o where
-        $this->assertCount(2, $this->getBase()->fetchAll(array('artist'=>$albuns[0]['artist'])));
-        $this->assertNull($this->getBase()->fetchAll(array('artist'=>$this->defaultValues[3]['artist'])));
+        $this->assertCount(2, $this->getBase()->fetchAll(array('artist' => $albuns[0]['artist'])));
+        $this->assertNull($this->getBase()->fetchAll(array('artist' => $this->defaultValues[3]['artist'])));
 
         // Verifica o paginator com o padrão
         $paginator = $this->getBase()->setUsePaginator(true)->fetchAll();
@@ -317,8 +354,8 @@ class BaseTest extends BaseTestCase
 
         // Verifica o paginator alterando o paginator
         $this->getBase()->getPaginator()->setPageRange(2)
-                                        ->setCurrentPageNumber(1)
-                                        ->setItemCountPerPage(2);
+            ->setCurrentPageNumber(1)
+            ->setItemCountPerPage(2);
         $paginator = $this->getBase()->setUsePaginator(true)->fetchAll();
         $paginator = $paginator->toJson();
         $this->assertNotEquals(json_encode($this->defaultValues), $paginator);
@@ -337,7 +374,9 @@ class BaseTest extends BaseTestCase
         $this->assertCount(4, $this->getBase()->fetchAll(), 'Deve conter 4 registros 1');
 
         // Grava um registro "sem o cache saber"
-        $this->getBase()->getTableGateway()->insert(array('id'=>10, 'artist'=>'nao existo por enquanto', 'title'=>'bla bla', 'deleted' => 0));
+        $this->getBase()->getTableGateway()->insert(
+            array('id' => 10, 'artist' => 'nao existo por enquanto', 'title' => 'bla bla', 'deleted' => 0)
+        );
 
         $this->assertCount(4, $this->getBase()->fetchAll(), 'Deve conter 4 registros 2');
         $this->assertTrue($this->getBase()->getCache()->flush(), 'apaga o cache');
@@ -348,18 +387,17 @@ class BaseTest extends BaseTestCase
         $this->assertCount(4, $this->getBase()->fetchAll(), 'Deve conter 4 registros 3');
 
         // Apaga um registro "sem o cache saber"
-        $this->getBase()->getTableGateway()->delete(array("id"=>10));
+        $this->getBase()->getTableGateway()->delete(array("id" => 10));
         $this->getBase()->setShowDeleted(true);
         $this->assertCount(5, $this->getBase()->fetchAll(), 'Deve conter 5 registros');
         $this->assertTrue($this->getBase()->getCache()->flush(), 'apaga o cache');
         $this->assertCount(4, $this->getBase()->fetchAll(), 'Deve conter 4 registros 4');
-
     }
 
     /**
-     * Tests Base->fetchRow()
+     * Tests Base->fetchRow():void
      */
-    public function testFetchRow()
+    public function testFetchRow(): void
     {
         // Marca pra usar o campo deleted
         $this->getBase()->setUseDeleted(true);
@@ -378,9 +416,9 @@ class BaseTest extends BaseTestCase
     }
 
     /**
-     * Tests Base->fetchAssoc()
+     * Tests Base->fetchAssoc():void
      */
-    public function testFetchAssoc()
+    public function testFetchAssoc(): void
     {
         // O padrão é não usar o campo deleted
         $albuns = $this->getBase()->fetchAssoc();
@@ -409,38 +447,37 @@ class BaseTest extends BaseTestCase
     }
 
     /**
-     * Tests Base->getLoader()
+     * Tests Base->getLoader():void
      */
-    public function testGetLoader()
+    public function testGetLoader(): void
     {
-        // TODO Auto-generated BaseTest->testGetLoader()
+        // TODO Auto-generated BaseTest->testGetLoader():void
         $this->markTestIncomplete("getLoader test not implemented");
 
         $this->Base->getLoader(/* parameters */);
     }
 
     /**
-     * Tests Base->setLoader()
+     * Tests Base->setLoader():void
      */
-    public function testSetLoader()
+    public function testSetLoader(): void
     {
-        // TODO Auto-generated BaseTest->testSetLoader()
+        // TODO Auto-generated BaseTest->testSetLoader():void
         $this->markTestIncomplete("setLoader test not implemented");
 
         $this->Base->setLoader(/* parameters */);
     }
 
     /**
-     * Tests Base->getTable()
+     * Tests Base->getTable():void
      */
-    public function testGetTableGetKey()
+    public function testGetTableGetKey(): void
     {
         $Base = new Base('tablename', 'keyname');
         $this->assertNotNull($Base->getTable());
         $this->assertNotNull($Base->getKey());
         $this->assertEquals('tablename', $Base->getTable());
         $this->assertEquals('keyname', $Base->getKey());
-
         /*
         // @todo permitir chaves compostas
         $Base = new Base('tablename', array('key1', 'key2'));
@@ -452,110 +489,110 @@ class BaseTest extends BaseTestCase
     }
 
     /**
-     * Tests Base->getSelect()
+     * Tests Base->getSelect():void
      */
-    public function testGetSelect()
+    public function testGetSelect(): void
     {
-        // TODO Auto-generated BaseTest->testGetSelect()
+        // TODO Auto-generated BaseTest->testGetSelect():void
         $this->markTestIncomplete("getSelect test not implemented");
 
         $this->Base->getSelect(/* parameters */);
     }
 
     /**
-     * Tests Base->getTableSelect()
+     * Tests Base->getTableSelect():void
      */
-    public function testGetTableSelect()
+    public function testGetTableSelect(): void
     {
-        // TODO Auto-generated BaseTest->testGetTableSelect()
+        // TODO Auto-generated BaseTest->testGetTableSelect():void
         $this->markTestIncomplete("getTableSelect test not implemented");
 
         $this->Base->getTableSelect(/* parameters */);
     }
 
     /**
-     * Tests Base->fetchCount()
+     * Tests Base->fetchCount():void
      */
-    public function testFetchCount()
+    public function testFetchCount(): void
     {
-        // TODO Auto-generated BaseTest->testFetchCount()
+        // TODO Auto-generated BaseTest->testFetchCount():void
         $this->markTestIncomplete("fetchCount test not implemented");
 
         $this->Base->fetchCount(/* parameters */);
     }
 
     /**
-     * Tests Base->getHtmlSelect()
+     * Tests Base->getHtmlSelect():void
      */
-    public function testGetHtmlSelect()
+    public function testGetHtmlSelect(): void
     {
-        // TODO Auto-generated BaseTest->testGetHtmlSelect()
+        // TODO Auto-generated BaseTest->testGetHtmlSelect():void
         $this->markTestIncomplete("getHtmlSelect test not implemented");
 
         $this->Base->getHtmlSelect(/* parameters */);
     }
 
     /**
-     * Tests Base->getCache()
+     * Tests Base->getCache():void
      */
-    public function testGetCache()
+    public function testGetCache(): void
     {
-        // TODO Auto-generated BaseTest->testGetCache()
+        // TODO Auto-generated BaseTest->testGetCache():void
         $this->markTestIncomplete("getCache test not implemented");
 
         $this->Base->getCache(/* parameters */);
     }
 
     /**
-     * Tests Base->setUseCache()
+     * Tests Base->setUseCache():void
      */
-    public function testSetUseCache()
+    public function testSetUseCache(): void
     {
-        // TODO Auto-generated BaseTest->testSetUseCache()
+        // TODO Auto-generated BaseTest->testSetUseCache():void
         $this->markTestIncomplete("setUseCache test not implemented");
 
         $this->Base->setUseCache(/* parameters */);
     }
 
     /**
-     * Tests Base->getUseCache()
+     * Tests Base->getUseCache():void
      */
-    public function testGetUseCache()
+    public function testGetUseCache(): void
     {
-        // TODO Auto-generated BaseTest->testGetUseCache()
+        // TODO Auto-generated BaseTest->testGetUseCache():void
         $this->markTestIncomplete("getUseCache test not implemented");
 
         $this->Base->getUseCache(/* parameters */);
     }
 
     /**
-     * Tests Base->getPaginator()
+     * Tests Base->getPaginator():void
      */
-    public function testGetPaginator()
+    public function testGetPaginator(): void
     {
-        // TODO Auto-generated BaseTest->testGetPaginator()
+        // TODO Auto-generated BaseTest->testGetPaginator():void
         $this->markTestIncomplete("getPaginator test not implemented");
 
         $this->Base->getPaginator(/* parameters */);
     }
 
     /**
-     * Tests Base->setUsePaginator()
+     * Tests Base->setUsePaginator():void
      */
-    public function testSetUsePaginator()
+    public function testSetUsePaginator(): void
     {
-        // TODO Auto-generated BaseTest->testSetUsePaginator()
+        // TODO Auto-generated BaseTest->testSetUsePaginator():void
         $this->markTestIncomplete("setUsePaginator test not implemented");
 
         $this->Base->setUsePaginator(/* parameters */);
     }
 
     /**
-     * Tests Base->getUsePaginator()
+     * Tests Base->getUsePaginator():void
      */
-    public function testGetUsePaginator()
+    public function testGetUsePaginator(): void
     {
-        // TODO Auto-generated BaseTest->testGetUsePaginator()
+        // TODO Auto-generated BaseTest->testGetUsePaginator():void
         $this->markTestIncomplete("getUsePaginator test not implemented");
 
         $this->Base->getUsePaginator(/* parameters */);

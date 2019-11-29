@@ -79,23 +79,6 @@ class MpttTest extends BaseTestCase
      */
     private $Mptt;
 
-    public function __construct()
-    {
-        $fields = array('id', 'name', 'parent_id', 'lft', 'rgt');
-        foreach ($this->idOrderedTree as $values) {
-            $row = array_combine($fields, $values);
-            $this->idOrderedRows[] = $row;
-            unset($row['lft']);
-            unset($row['rgt']);
-            $this->defaultRows[] = $row;
-        }
-
-        foreach ($this->nameOrderedTree as $values) {
-            $row = array_combine($fields, $values);
-            $this->nameOrderedRows[] = $row;
-        }
-    }
-
     /**
      *
      * @return \Realejo\Db\TableAdapterTest
@@ -109,25 +92,37 @@ class MpttTest extends BaseTestCase
     /**
      * Prepares the environment before running a test.
      */
-    protected function setUp()
+    protected function setUp():void
     {
         parent::setUp();
+        $fields = array('id', 'name', 'parent_id', 'lft', 'rgt');
+        foreach ($this->idOrderedTree as $values) {
+            $row = array_combine($fields, $values);
+            $this->idOrderedRows[] = $row;
+            unset($row['lft'], $row['rgt']);
+            $this->defaultRows[] = $row;
+        }
+
+        foreach ($this->nameOrderedTree as $values) {
+            $row = array_combine($fields, $values);
+            $this->nameOrderedRows[] = $row;
+        }
         $this->dropTables()->createTables();
     }
 
     /**
      * Cleans up the environment after running a test.
      */
-    protected function tearDown()
+    protected function tearDown():void
     {
         parent::tearDown();
         //$this->dropTables();
     }
 
     /**
-     * Tests Mptt->__construct()
+     * Tests Mptt->__construct():void
      */
-    public function test__construct()
+    public function test__construct():void
     {
         // Cria a tabela sem a implementação do transversable
         $mptt = new Mptt('mptt', 'id');
@@ -136,10 +131,9 @@ class MpttTest extends BaseTestCase
     }
 
     /**
-     * Tests Mptt->setTraversal()
-     * @expectedException Exception
+     * Tests Mptt->setTraversal():void
      */
-    public function testSetTraversalIncomplete()
+    public function testSetTraversalIncomplete():void
     {
         // Cria a tabela sem a implementação do transversable
         $mptt = new Mptt('mptt', 'id');
@@ -150,26 +144,26 @@ class MpttTest extends BaseTestCase
 
         $this->assertInstanceOf('\Realejo\App\Model\Mptt', $mptt);
 
-        // The Exception
+        $this->expectException(\Exception::class);
         $mptt->setTraversal(array('invalid'=>'invalid'));
     }
 
     /**
-     * Tests Mptt->getColumns()
+     * Tests Mptt->getColumns():void
      */
-    public function testGetColumns()
+    public function testGetColumns():void
     {
         $mptt = new Mptt('mptt', 'id');
-        $this->assertInternalType('array', $mptt->getColumns());
+        $this->assertIsArray($mptt->getColumns());
         $this->assertNotNull($mptt->getColumns());
         $this->assertNotEmpty($mptt->getColumns());
         $this->assertEquals(array('id', 'name', 'parent_id', 'lft', 'rgt'), $mptt->getColumns());
     }
 
     /**
-     * Tests Mptt->setTraversal()
+     * Tests Mptt->setTraversal():void
      */
-    public function testSetTraversal()
+    public function testSetTraversal():void
     {
         $mptt = new Mptt('mptt', 'id');
         $this->assertFalse($mptt->isTraversable());
@@ -178,9 +172,9 @@ class MpttTest extends BaseTestCase
     }
 
     /**
-     * Tests Mptt->rebuildTreeTraversal()
+     * Tests Mptt->rebuildTreeTraversal():void
      */
-    public function testRebuildTreeTraversal()
+    public function testRebuildTreeTraversal():void
     {
         // Cria a tablea com os valores padrões
         $mptt = new Mptt('mptt', 'id');
@@ -211,9 +205,9 @@ class MpttTest extends BaseTestCase
     }
 
     /**
-     * Tests Mptt->rebuildTreeTraversal()
+     * Tests Mptt->rebuildTreeTraversal():void
      */
-    public function testInsert()
+    public function testInsert():void
     {
         // Cria a tablea com os valores padrões
         $mptt = new Mptt('mptt', 'id');
@@ -254,9 +248,9 @@ class MpttTest extends BaseTestCase
     }
 
     /**
-     * Tests Mptt->rebuildTreeTraversal()
+     * Tests Mptt->rebuildTreeTraversal():void
      */
-    public function testDelete()
+    public function testDelete():void
     {
         // Cria a tablea com os valores padrões
         $mptt = new Mptt('mptt', 'id');

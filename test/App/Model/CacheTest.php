@@ -18,7 +18,7 @@ class CacheTest extends BaseTestCase
     /**
      * Prepares the environment before running a test.
      */
-    protected function setUp()
+    protected function setUp():void
     {
         parent::setUp();
 
@@ -28,7 +28,7 @@ class CacheTest extends BaseTestCase
     /**
      * Cleans up the environment after running a test.
      */
-    protected function tearDown()
+    protected function tearDown():void
     {
         parent::tearDown();
 
@@ -44,7 +44,7 @@ class CacheTest extends BaseTestCase
      * Não funciona durante os testes. Tem que ver como definir melhor esse teste
      *
      */
-    /*public function testGetCacheRootSemAPPLICATION_DATA()
+    /*public function testGetCacheRootSemAPPLICATION_DATA():void
     {
         Cache::getCacheRoot();
     }*/
@@ -52,7 +52,7 @@ class CacheTest extends BaseTestCase
     /**
      * getCachePath sem nome da pasta
      */
-    public function testGetCacheRoot()
+    public function testGetCacheRoot():void
     {
         // Recupera a pasta aonde será salva as informações
         $path = Cache::getCacheRoot();
@@ -68,7 +68,7 @@ class CacheTest extends BaseTestCase
     /**
      * getCachePath sem nome da pasta
      */
-    public function testGetCachePath()
+    public function testGetCachePath():void
     {
         // Verifica se todas as opções são iguais
         $this->assertEquals(Cache::getCacheRoot(), Cache::getCachePath(null));
@@ -141,7 +141,7 @@ class CacheTest extends BaseTestCase
     /**
      * getFrontend com nome da class
      */
-    public function testGetFrontendComClass()
+    public function testGetFrontendComClass():void
     {
         $cache = Cache::getFrontend('Album');
         $this->assertInstanceOf(Filesystem::class, $cache);
@@ -150,7 +150,7 @@ class CacheTest extends BaseTestCase
     /**
      * getFrontend sem nome da class
      */
-    public function testGetFrontendSemClass()
+    public function testGetFrontendSemClass():void
     {
         $cache = Cache::getFrontend(null);
         $this->assertInstanceOf(Filesystem::class, $cache);

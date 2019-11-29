@@ -6,7 +6,7 @@
   "license" : "BSD-3-Clause",
   "keywords" : [ "framework", "zf2", "realejo" ],
   "require" : {
-    "php" : "~5.6 || ~7.0 || ~7.1",
+    "php" : "~7.1 || ~7.2 || ~7.3 || ~7.4",
     "zendframework/zend-db" : "^2.8.2",
     "zendframework/zend-cache" : "^2.7.2",
     "zendframework/zend-json" : "^2.6 || ^3.0.0",
@@ -15,7 +15,7 @@
   },
   "require-dev" : {
     "squizlabs/php_codesniffer": "^2.8.1",
-    "phpunit/PHPUnit" : "~5.7"
+    "phpunit/phpunit" : "^8.4 || ^7.5"
   },
   "autoload-dev" : {
     "psr-4" : {
