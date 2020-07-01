@@ -10,12 +10,12 @@ namespace RealejoTest;
  */
 
 use PHPUnit\Framework\TestCase;
-use Zend\Db\Adapter\Adapter;
+use Laminas\Db\Adapter\Adapter;
 
 class BaseTestCase extends TestCase
 {
     /**
-     * @var \Zend\Db\Adapter\Adapter
+     * @var \Laminas\Db\Adapter\Adapter
      */
     protected $adapter = null;
 
@@ -27,7 +27,7 @@ class BaseTestCase extends TestCase
     protected $tables = array();
 
     /**
-     * @return \Zend\Db\Adapter\Adapter
+     * @return \Laminas\Db\Adapter\Adapter
      */
     public function getAdapter()
     {
@@ -38,9 +38,9 @@ class BaseTestCase extends TestCase
             if (!file_exists($config)) {
                 $config = TEST_ROOT . '/configs/db.php.dist';
             }
-            $this->adapter = new \Zend\Db\Adapter\Adapter(require $config);
+            $this->adapter = new \Laminas\Db\Adapter\Adapter(require $config);
 
-            \Zend\Db\TableGateway\Feature\GlobalAdapterFeature::setStaticAdapter($this->adapter);
+            \Laminas\Db\TableGateway\Feature\GlobalAdapterFeature::setStaticAdapter($this->adapter);
         }
         return $this->adapter;
     }

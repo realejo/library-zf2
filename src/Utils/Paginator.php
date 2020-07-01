@@ -4,15 +4,15 @@
  * There is a bug when retrieve cache for adapter based on filesystem.
  * So, this class is used to override the _getCacheInternalId method
  *
- * https://github.com/zendframework/zend-paginator/issues/1
- * https://github.com/zendframework/zend-paginator/issues/41
+ * https://github.com/laminas/laminas-paginator/issues/1
+ * https://github.com/laminas/laminas-paginator/issues/41
  */
 
 namespace Realejo\Utils;
 
-use Zend\Paginator\Adapter\DbSelect;
+use Laminas\Paginator\Adapter\DbSelect;
 
-class Paginator extends \Zend\Paginator\Paginator
+class Paginator extends \Laminas\Paginator\Paginator
 {
     protected function _getCacheInternalId()
     {

@@ -12,7 +12,7 @@ namespace RealejoTest\App\Model;
 
 use Realejo\App\Model\Base;
 use RealejoTest\BaseTestCase;
-use Zend\Db\Adapter\Adapter;
+use Laminas\Db\Adapter\Adapter;
 
 class BaseTest extends BaseTestCase
 {
@@ -155,7 +155,7 @@ class BaseTest extends BaseTestCase
      */
     public function testAdapter(): void
     {
-        $this->assertInstanceOf('\Zend\Db\Adapter\Adapter', $this->getAdapter());
+        $this->assertInstanceOf('\Laminas\Db\Adapter\Adapter', $this->getAdapter());
     }
 
     /**
@@ -230,7 +230,7 @@ class BaseTest extends BaseTestCase
             $this->getBase()->getWhere(array($this->tableKeyName => 1))
         );
 
-        $dbExpression = new \Zend\Db\Sql\Expression('now()');
+        $dbExpression = new \Laminas\Db\Sql\Expression('now()');
         $this->assertEquals(
             array(
                 $dbExpression,
@@ -297,7 +297,7 @@ class BaseTest extends BaseTestCase
     public function testGetSQlSelect(): void
     {
         $select = $this->getBase()->getSQlSelect();
-        $this->assertInstanceOf('Zend\Db\Sql\Select', $select);
+        $this->assertInstanceOf('Laminas\Db\Sql\Select', $select);
         $this->assertEquals(
             $select->getSqlString($this->getAdapter()->getPlatform()),
             $this->getBase()->getSQlString()

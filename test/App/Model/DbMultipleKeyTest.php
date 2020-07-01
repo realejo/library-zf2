@@ -176,8 +176,8 @@ class DbMultipleKeyTest extends BaseTestCase
             'Verifica se o TERCEIRO registro adicionado corresponde ao original pelo fetchRow()'
         );
 
-        // Teste com \Zend\Db\Sql\Expression
-        $id = $this->getDb()->insert(array('title' => new \Zend\Db\Sql\Expression('now()')));
+        // Teste com \Laminas\Db\Sql\Expression
+        $id = $this->getDb()->insert(array('title' => new \Laminas\Db\Sql\Expression('now()')));
         $this->assertEquals(4, $id);
     }
 

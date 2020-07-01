@@ -10,12 +10,12 @@
 namespace Realejo\App\Model;
 
 use Realejo\App\Loader\Loader;
-use Zend\Db\TableGateway\Feature\GlobalAdapterFeature;
-use Zend\Db\Adapter\AdapterInterface;
-use Zend\Db\TableGateway\TableGateway;
-use Zend\Paginator\Adapter\DbSelect;
-use Realejo\Utils\Paginator as ZendPaginator;
-use Zend\Db\Sql;
+use Laminas\Db\TableGateway\Feature\GlobalAdapterFeature;
+use Laminas\Db\Adapter\AdapterInterface;
+use Laminas\Db\TableGateway\TableGateway;
+use Laminas\Paginator\Adapter\DbSelect;
+use Realejo\Utils\Paginator as LaminasPaginator;
+use Laminas\Db\Sql;
 
 class Base
 {
@@ -60,7 +60,7 @@ class Base
     /**
      * Não pode ser usado dentro do Loader pois cada classe tem configurações diferentes
      *
-     * @var \Zend\Cache\Storage\Adapter\Filesystem
+     * @var \Laminas\Cache\Storage\Adapter\Filesystem
      */
     private $_cache;
 
@@ -435,7 +435,7 @@ class Base
                                         // the adapter to run it against
                                         $this->getTableGateway()->getAdapter()
                                     );
-                $fetchAll = new ZendPaginator($paginatorAdapter);
+                $fetchAll = new LaminasPaginator($paginatorAdapter);
 
                 // Verifica se deve usar o cache
                 if ($this->getUseCache()) {
@@ -513,7 +513,7 @@ class Base
         // Verifica se está usando o paginator e
         // garante que sempre vai retornar um array
         // sem desligar o paginator
-        if ($row instanceof ZendPaginator) {
+        if ($row instanceof LaminasPaginator) {
             if ($row->count() > 0) {
                 return (array) $row->getCurrentItems()->current();
             }
@@ -705,7 +705,7 @@ class Base
     /**
      * Retorna o frontend para gravar o cache
      *
-     * @return \Zend\Cache\Storage\Adapter\Filesystem
+     * @return \Laminas\Cache\Storage\Adapter\Filesystem
      */
     public function getCache()
     {

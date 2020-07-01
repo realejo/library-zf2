@@ -521,7 +521,7 @@ class Mail
      */
     static function isEmail($email)
     {
-        $validator = new \Zend\Validator\EmailAddress();
+        $validator = new \Laminas\Validator\EmailAddress();
         return $validator->isValid($email);
     }
 

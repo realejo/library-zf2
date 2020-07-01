@@ -47,7 +47,7 @@ class BaseTestCaseTest extends TestCase
      */
     public function testGetAdapter ()
     {
-        $this->assertInstanceOf('\Zend\Db\Adapter\Adapter', $this->BaseTestCase->getAdapter());
+        $this->assertInstanceOf('\Laminas\Db\Adapter\Adapter', $this->BaseTestCase->getAdapter());
     }
 
     /**

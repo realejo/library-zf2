@@ -14,14 +14,14 @@
  */
 namespace Realejo\Utils;
 
-use Zend\Db\TableGateway\Feature\GlobalAdapterFeature;
-use Zend\Db\TableGateway\TableGateway;
-use Zend\Db\Adapter\Adapter;
+use Laminas\Db\TableGateway\Feature\GlobalAdapterFeature;
+use Laminas\Db\TableGateway\TableGateway;
+use Laminas\Db\Adapter\Adapter;
 
 class AbstractTestCase extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \Zend\Db\Adapter\Adapter
+     * @var \Laminas\Db\Adapter\Adapter
      */
     protected $adapter = null;
 
@@ -53,7 +53,7 @@ class AbstractTestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return \Zend\Db\Adapter\Adapter
+     * @return \Laminas\Db\Adapter\Adapter
      */
     public function getAdapter()
     {
