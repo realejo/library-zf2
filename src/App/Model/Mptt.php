@@ -136,7 +136,7 @@ class Mptt extends Db
         if (!empty($parentId)) {
             $select->where(array($this->_traversal['refColumn'] => $parentId));
         } else {
-            $select->where(new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['refColumn']} IS NULL OR {$this->_traversal['refColumn']} = 0"));
+            $select->where(new \Laminas\Db\Sql\Predicate\Expression("{$this->_traversal['refColumn']} IS NULL OR {$this->_traversal['refColumn']} = 0"));
         }
 
         // Define the order
@@ -240,18 +240,18 @@ class Mptt extends Db
             // Make room for the new node
             $this->getTableGateway()->update(
                 array(
-                    $this->_traversal['left'] => new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['left']} + 2"),
-                ), new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['left']} > $pos")
+                    $this->_traversal['left'] => new \Laminas\Db\Sql\Predicate\Expression("{$this->_traversal['left']} + 2"),
+                ), new \Laminas\Db\Sql\Predicate\Expression("{$this->_traversal['left']} > $pos")
             );
 
             $this->getTableGateway()->update(
                 array(
-                    $this->_traversal['right'] => new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['right']} + 2"),
-                ), new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['right']} > $pos")
+                    $this->_traversal['right'] => new \Laminas\Db\Sql\Predicate\Expression("{$this->_traversal['right']} + 2"),
+                ), new \Laminas\Db\Sql\Predicate\Expression("{$this->_traversal['right']} > $pos")
             );
         } else {
             $select = $this->getTableGateway()->getSql()->select();
-            $select->reset('columns')->columns(array('theMax' => new \Zend\Db\Sql\Predicate\Expression("MAX({$this->_traversal['right']})")));
+            $select->reset('columns')->columns(array('theMax' => new \Laminas\Db\Sql\Predicate\Expression("MAX({$this->_traversal['right']})")));
             $maxRt = (double) $this->getTableGateway()->selectWith($select)->current()->theMax;
             $set[$this->_traversal['left']] = $maxRt + 1;
             $set[$this->_traversal['right']] = $maxRt + 2;
@@ -294,19 +294,19 @@ class Mptt extends Db
         $row = $this->fetchRow($key);
 
         // Delete the node and it's childs
-        $delete = $this->getTableGateway()->delete(new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['left']} >= {$row[$this->_traversal['left']]} and {$this->_traversal['right']} <= {$row[$this->_traversal['right']]}"));
+        $delete = $this->getTableGateway()->delete(new \Laminas\Db\Sql\Predicate\Expression("{$this->_traversal['left']} >= {$row[$this->_traversal['left']]} and {$this->_traversal['right']} <= {$row[$this->_traversal['right']]}"));
 
         // Fixes the left,right for the remaining nodes
         $fix = $row[$this->_traversal['right']] - $row[$this->_traversal['left']] + 1;
         $this->getTableGateway()->update(
             array(
-                $this->_traversal['left'] => new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['left']} - $fix"),
-            ), new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['left']} > {$row[$this->_traversal['left']]}")
+                $this->_traversal['left'] => new \Laminas\Db\Sql\Predicate\Expression("{$this->_traversal['left']} - $fix"),
+            ), new \Laminas\Db\Sql\Predicate\Expression("{$this->_traversal['left']} > {$row[$this->_traversal['left']]}")
         );
         $this->getTableGateway()->update(
             array(
-                $this->_traversal['right'] => new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['right']} - $fix"),
-            ), new \Zend\Db\Sql\Predicate\Expression("{$this->_traversal['right']} > {$row[$this->_traversal['right']]}")
+                $this->_traversal['right'] => new \Laminas\Db\Sql\Predicate\Expression("{$this->_traversal['right']} - $fix"),
+            ), new \Laminas\Db\Sql\Predicate\Expression("{$this->_traversal['right']} > {$row[$this->_traversal['right']]}")
         );
 
 
@@ -326,7 +326,7 @@ class Mptt extends Db
     public function getColumns()
     {
         if (!isset($this->_columns)) {
-            $metadata = new \Zend\Db\Metadata\Metadata($this->getTableGateway()->getAdapter());
+            $metadata = new \Laminas\Db\Metadata\Metadata($this->getTableGateway()->getAdapter());
             $this->_columns = $metadata->getColumnNames($this->getTable());
         }
 

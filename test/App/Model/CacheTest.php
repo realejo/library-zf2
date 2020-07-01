@@ -10,7 +10,7 @@ namespace RealejoTest\App\Model;
  */
 use Realejo\App\Model\Cache,
     RealejoTest\BaseTestCase;
-use Zend\Cache\Storage\Adapter\Filesystem;
+use Laminas\Cache\Storage\Adapter\Filesystem;
 
 class CacheTest extends BaseTestCase
 {

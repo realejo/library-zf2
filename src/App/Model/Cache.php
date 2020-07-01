@@ -10,21 +10,21 @@
  */
 namespace Realejo\App\Model;
 
-use Zend\Cache\StorageFactory;
+use Laminas\Cache\StorageFactory;
 
 class Cache
 {
 
     /**
      *
-     * @var Zend\Cache\StorageFactory
+     * @var Laminas\Cache\StorageFactory
      */
     private $_cache;
 
      /**
       * Configura o cache
       *
-      * @return Zend\Cache\Storage\Adapter\Filesystem
+      * @return Laminas\Cache\Storage\Adapter\Filesystem
       */
      static public function getFrontend($class = '')
      {

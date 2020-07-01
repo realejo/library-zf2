@@ -232,7 +232,7 @@ class Db extends Base
      */
     private function _getKeyWhere($key)
     {
-        if ($key instanceof \Zend\Db\Sql\Expression || $key instanceof \Zend\Db\Sql\Predicate\PredicateInterface) {
+        if ($key instanceof \Laminas\Db\Sql\Expression || $key instanceof \Laminas\Db\Sql\Predicate\PredicateInterface) {
             return $key;
         }
 
