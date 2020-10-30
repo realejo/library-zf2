@@ -16,7 +16,7 @@
         "laminas/laminas-json": "^2.6 || ^3.0.0",
         "laminas/laminas-paginator": "^2.7.0",
         "laminas/laminas-serializer": "^2.8.0",
-        "laminas/laminas-dependency-plugin": "^1.0"
+        "laminas/laminas-dependency-plugin": "^2.0.0"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^2.8.1",
